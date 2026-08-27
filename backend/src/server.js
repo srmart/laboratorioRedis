@@ -1,22 +1,16 @@
 import cors from "cors";
 import express from "express";
-import { createClient } from "redis";
+import redisClient from "./redis.js";
+import viajesRouter from "./routes/viajes.routes.js";
+import reservasRouter from "./routes/reservas.routes.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
-const redisUrl = process.env.REDIS_URL || "redis://localhost:6379";
 
 app.use(cors());
-
-const redisClient = createClient({
-  url: redisUrl,
-});
-
-redisClient.on("error", (error) => {
-  console.error("Redis error:", error.message);
-});
-
-await redisClient.connect();
+app.use(express.json());
+app.use("/viajes", viajesRouter);
+app.use("/reservas", reservasRouter);
 
 app.get("/health", async (_request, response) => {
   try {

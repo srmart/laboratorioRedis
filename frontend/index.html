@@ -1,12 +1,28 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
+
+    <!-- Hace que la página se adapte correctamente a distintos tamaños de pantalla -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Frontend Template</title>
+
+    <!-- Nombre que aparece en la pestaña del navegador -->
+    <title>RediBus</title>
   </head>
+
   <body>
+
+    <!--
+      React va a insertar toda nuestra aplicación dentro de este div.
+      Por eso no escribimos acá toda la interfaz de RediBus.
+    -->
     <div id="root"></div>
+
+    <!--
+      Este archivo inicia la aplicación React.
+      Desde main.jsx se carga el componente principal.
+    -->
     <script type="module" src="/src/main.jsx"></script>
+
   </body>
-  </html>
+</html>

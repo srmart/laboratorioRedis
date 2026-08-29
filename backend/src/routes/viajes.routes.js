@@ -12,20 +12,18 @@ const router = Router();
 // ==========================================================
 
 router.get("/", async (req, res) => {
-
   const { origen, destino, fecha } = req.query;
 
   if (!origen || !destino || !fecha) {
-
     return res.status(400).json({
-
       error: "Origen, destino y fecha son obligatorios",
-
     });
-
   }
 
   try {
+    // Buscar viajes NO modifica el caché del catálogo.
+    // Si el catálogo existe, lo usamos.
+    // Si no existe, leemos directamente el CSV.
 
     const cacheKey = "cache:catalogo";
 
@@ -34,68 +32,78 @@ router.get("/", async (req, res) => {
 
     let catalogo;
 
-
-    // ======================================================
-    // El catálogo ya está en Redis
-    // ======================================================
-
     if (cachedCatalogo !== null) {
-
       console.log(
         "BUSQUEDA: usando catálogo desde Redis"
       );
 
       catalogo = JSON.parse(cachedCatalogo);
 
-    }
-
-
-    // ======================================================
-    // El catálogo todavía NO está en Redis
-    // ======================================================
-
-    else {
-
+    } else {
       console.log(
-        "BUSQUEDA: catálogo no está en Redis, leyendo CSV"
+        "BUSQUEDA: catálogo no está en cache, leyendo CSV"
       );
 
       catalogo = await leerViajesCSV();
-
     }
 
+    // ======================================================
+    // PREPARAMOS LOS DATOS DEL VIAJE PARA LOS ASIENTOS
+    // ======================================================
+
+    for (const viaje of catalogo) {
+      const viajeKey = `viaje:${viaje.id}`;
+      const capacidadKey = `viaje:${viaje.id}:capacidad`;
+
+      const existeViaje =
+        await redisClient.exists(viajeKey);
+
+      if (!existeViaje) {
+        await redisClient.hSet(viajeKey, {
+          origen: viaje.origen,
+          destino: viaje.destino,
+          fecha: viaje.fecha,
+          horaSalida: viaje.horaSalida,
+          horaLlegada: viaje.horaLlegada,
+          tipoBus: viaje.tipoBus,
+          precio: String(viaje.precio),
+        });
+      }
+
+      const existeCapacidad =
+        await redisClient.exists(capacidadKey);
+
+      if (!existeCapacidad) {
+        await redisClient.set(
+          capacidadKey,
+          viaje.capacidad
+        );
+      }
+    }
 
     // ======================================================
-    // Filtrar resultados
+    // FILTRAR
     // ======================================================
 
     const viajes = catalogo.filter(
-
       (viaje) =>
         viaje.origen === origen &&
         viaje.destino === destino &&
         viaje.fecha === fecha
-
     );
-
 
     return res.json(viajes);
 
   } catch (error) {
-
     console.error(
       "Error buscando viajes:",
       error
     );
 
     return res.status(500).json({
-
       error: "Error obteniendo los viajes",
-
     });
-
   }
-
 });
 
 

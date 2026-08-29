@@ -1,119 +1,94 @@
 import { useEffect, useState } from "react";
 
-// Datos temporales utilizados mientras no tenemos acceso al backend.
-import { viajesMock } from "./data/viajesMock.js";
-
-
-/*
-  TIEMPO TEMPORAL DE RESERVA
-
-  300 segundos = 5 minutos.
-
-  TODO REDIS:
-
-  Este valor es solamente para desarrollar el frontend.
-
-  Cuando Redis este conectado, el backend debera devolver
-  el TTL real de la reserva y este valor fijo dejara de ser
-  la fuente real del tiempo restante.
-*/
-const TIEMPO_RESERVA_MOCK = 300;
-
+import SelectorAsientos from "./components/seatselector.jsx";
 
 export default function App() {
 
-  // Estado del backend y Redis.
+  // ==========================================================
+  // ESTADO DEL BACKEND Y REDIS
+  // ==========================================================
+
   const [status, setStatus] = useState("Loading backend status...");
 
-  // Viajes encontrados en la busqueda.
+
+  // ==========================================================
+  // VIAJES
+  // ==========================================================
+
   const [viajesEncontrados, setViajesEncontrados] = useState([]);
 
   /*
-    Guarda la reserva actual.
-
-    null significa que no hay ninguna reserva activa.
+    Guardamos también los viajes conocidos para poder
+    relacionarlos con las reservas mediante viajeId.
   */
+  const [viajesCatalogo, setViajesCatalogo] = useState([]);
+
+
+  // ==========================================================
+  // RESERVA ACTUAL
+  // ==========================================================
+
   const [reserva, setReserva] = useState(null);
 
-  /*
-    Tiempo restante de la reserva expresado en segundos.
-  */
-  const [tiempoRestante, setTiempoRestante] = useState(
-    TIEMPO_RESERVA_MOCK
-  );
+  const [tiempoRestante, setTiempoRestante] = useState(0);
+
+
+  // ==========================================================
+  // USUARIO DE LA RESERVA
+  // ==========================================================
 
   /*
-    Guarda las ordenes generadas luego
-    de finalizar una compra.
-
-    TEMPORAL:
-    Por ahora las guardamos en React.
-
-    TODO REDIS:
-
-    Mas adelante estas ordenes deberan manejarse
-    mediante el backend y una queue en Redis.
+    Nombre que el usuario introduce al momento
+    de confirmar la selección de asientos.
   */
+  const [nombreReserva, setNombreReserva] = useState("");
+
+
+  // ==========================================================
+  // ORDENES / QUEUE
+  // ==========================================================
+
   const [ordenes, setOrdenes] = useState([]);
 
 
   // ==========================================================
-  // ESTADOS DEL CATALOGO Y CACHE
+  // CACHE
   // ==========================================================
 
-  /*
-    Este estado simula si el catalogo ya fue guardado
-    en la cache.
-
-    false = todavia no esta cacheado.
-    true  = ya existe en la cache.
-
-    TODO REDIS:
-
-    Este estado desaparecera cuando Redis maneje
-    realmente el cache.
-  */
-  const [catalogoEnCache, setCatalogoEnCache] = useState(false);
-
-
-  /*
-    Datos del catalogo que mostramos en pantalla.
-
-    Por ahora inicialmente esta vacio.
-  */
   const [catalogo, setCatalogo] = useState([]);
 
-
-  /*
-    Contadores de cache hits y misses.
-
-    La consigna pide mostrar estos valores
-    en la aplicacion.
-  */
   const [cacheHits, setCacheHits] = useState(0);
+
   const [cacheMisses, setCacheMisses] = useState(0);
 
-
-  /*
-    Guarda el resultado de la ultima consulta.
-
-    Puede ser:
-
-    null
-    "HIT"
-    "MISS"
-  */
   const [ultimaConsultaCache, setUltimaConsultaCache] = useState(null);
 
 
-  // Estados del formulario.
+  // ==========================================================
+  // FORMULARIO DE BUSQUEDA
+  // ==========================================================
+
   const [origen, setOrigen] = useState("");
+
   const [destino, setDestino] = useState("");
+
   const [fecha, setFecha] = useState("");
 
 
   // ==========================================================
-  // ESTADO DEL BACKEND Y REDIS
+  // SELECTOR DE ASIENTOS
+  // ==========================================================
+
+  const [viajeSeleccionado, setViajeSeleccionado] = useState(null);
+
+  const [asientosSeleccionados, setAsientosSeleccionados] = useState([]);
+
+  const [asientosOcupados, setAsientosOcupados] = useState([]);
+
+  const [nombreUsuario, setNombreUsuario] = useState("");
+
+  // ==========================================================
+  // ESTADO DEL BACKEND
   // ==========================================================
 
   useEffect(() => {
@@ -122,12 +97,6 @@ export default function App() {
 
       try {
 
-        /*
-          TODO BACKEND:
-
-          Este endpoint depende de la implementacion
-          definitiva del backend.
-        */
         const response = await fetch("/api/health");
 
         if (!response.ok) {
@@ -142,10 +111,6 @@ export default function App() {
 
       } catch (error) {
 
-        /*
-          Aunque backend o Redis no esten disponibles,
-          podemos seguir desarrollando el frontend.
-        */
         setStatus(
           `Backend / Redis no disponibles: ${error.message}`
         );
@@ -160,67 +125,53 @@ export default function App() {
 
 
   // ==========================================================
-  // CONTADOR DE LA RESERVA
+  // CONTADOR DE RESERVA
   // ==========================================================
 
   useEffect(() => {
 
-    /*
-      Si no existe una reserva activa,
-      no iniciamos el contador.
-    */
     if (reserva === null) {
       return;
     }
 
-    /*
-      TEMPORAL:
+    const intervalo = setInterval(async () => {
 
-      Simulamos el paso del tiempo en React.
+      try {
 
-      TODO REDIS:
+        const response = await fetch(
+          `/api/reservas/${reserva.id}`
+        );
 
-      Mas adelante el tiempo real debera estar determinado
-      por el TTL almacenado en Redis.
-    */
-    const intervalo = setInterval(() => {
+        if (!response.ok) {
 
-      setTiempoRestante((tiempoActual) => {
-
-        /*
-          Cuando llegamos al final,
-          consideramos expirada la reserva.
-        */
-        if (tiempoActual <= 1) {
-
-          clearInterval(intervalo);
-
-          /*
-            TEMPORAL:
-
-            Ahora React elimina la reserva.
-
-            TODO REDIS:
-
-            En la version final Redis sera quien determine
-            que la reserva expiro cuando su TTL llegue a cero.
-          */
           setReserva(null);
+          setTiempoRestante(0);
 
-          return 0;
+          return;
         }
 
-        return tiempoActual - 1;
+        const data = await response.json();
 
-      });
+        setTiempoRestante(data.ttl);
+
+        if (data.ttl <= 0) {
+
+          setReserva(null);
+          setTiempoRestante(0);
+
+        }
+
+      } catch (error) {
+
+        console.error(
+          "Error consultando TTL:",
+          error
+        );
+
+      }
 
     }, 1000);
 
-
-    /*
-      Limpiamos el intervalo cuando cambia
-      o desaparece la reserva.
-    */
     return () => {
       clearInterval(intervalo);
     };
@@ -232,50 +183,89 @@ export default function App() {
   // BUSCAR VIAJES
   // ==========================================================
 
-  const buscarViajes = (event) => {
+  const buscarViajes = async (event) => {
 
-    // Evitamos que el formulario recargue la pagina.
     event.preventDefault();
 
-    /*
-      TEMPORAL:
+    console.log("Buscando viajes...");
 
-      Buscamos sobre viajesMock.
-
-      TODO BACKEND:
-
-      Esta parte sera reemplazada mas adelante
-      por una consulta a la API.
-    */
-    const resultados = viajesMock.filter((viaje) => {
-
-      const coincideOrigen =
-        viaje.origen.trim().toLowerCase() ===
-        origen.trim().toLowerCase();
-
-      const coincideDestino =
-        viaje.destino.trim().toLowerCase() ===
-        destino.trim().toLowerCase();
-
-      const coincideFecha =
-        viaje.fecha === fecha;
-
-      return coincideOrigen && coincideDestino && coincideFecha;
-
+    console.log({
+      origen,
+      destino,
+      fecha
     });
 
-    setViajesEncontrados(resultados);
+    try {
 
+      const [anio, mes, dia] = fecha.split("-");
 
-    /*
-      TODO BACKEND:
+      const fechaRedis =
+        `${dia}/${mes}/${anio}`;
 
-      Mas adelante podria quedar conceptualmente asi:
+      const params = new URLSearchParams({
+        origen,
+        destino,
+        fecha: fechaRedis,
+      });
 
-      const resultados = await apiFetch(...);
+      const url =
+        `/api/viajes?${params}`;
+
+      console.log("URL:", url);
+
+      const response = await fetch(url);
+
+      console.log(
+        "STATUS:",
+        response.status
+      );
+
+      const resultados =
+        await response.json();
+
+      console.log(
+        "RESULTADOS:",
+        resultados
+      );
+
+      if (!response.ok) {
+
+        throw new Error(
+          resultados.error ||
+          `HTTP ${response.status}`
+        );
+
+      }
 
       setViajesEncontrados(resultados);
-    */
+
+      /*
+        Guardamos estos viajes para poder relacionarlos
+        posteriormente con las reservas.
+      */
+      setViajesCatalogo((actuales) => {
+
+        const mapa = new Map();
+
+        [...actuales, ...resultados].forEach(
+          (viaje) => {
+            mapa.set(String(viaje.id), viaje);
+          }
+        );
+
+        return [...mapa.values()];
+
+      });
+
+    } catch (error) {
+
+      console.error(
+        "ERROR:",
+        error
+      );
+
+    }
+
   };
 
 
@@ -283,101 +273,217 @@ export default function App() {
   // RESERVAR VIAJE
   // ==========================================================
 
-  const reservarViaje = (viaje) => {
+  const reservarViaje = async (viaje) => {
 
-    /*
-      TEMPORAL:
+    try {
 
-      Creamos una copia del viaje y la guardamos
-      como reserva en el estado de React.
-    */
-    const nuevaReserva = {
-      ...viaje
-    };
+      const response = await fetch(
+        `/api/viajes/${viaje.id}/asientos`
+      );
 
-    setReserva(nuevaReserva);
+      if (!response.ok) {
 
-    // Reiniciamos el contador en 5 minutos.
-    setTiempoRestante(TIEMPO_RESERVA_MOCK);
+        throw new Error(
+          "No se pudieron obtener los asientos"
+        );
 
-
-    /*
-      TODO BACKEND / REDIS:
-
-      Cuando el backend este disponible, ACA se debe crear
-      realmente la reserva.
-
-      El frontend debera enviar los datos necesarios
-      al backend.
-
-      Conceptualmente:
-
-      const nuevaReserva = await apiFetch("/reservas", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          viajeId: viaje.id
-        })
-      });
-
-      El BACKEND sera responsable de guardar la reserva
-      en Redis y asignarle un TTL.
-
-      Ejemplo conceptual:
-
-      SET reserva:{reservaId} {...datosReserva...} EX 300
-
-      El backend podria devolver:
-
-      {
-        reservaId: "reserva-123",
-        viajeId: 1,
-        ttl: 300
       }
 
-      Entonces:
+      const data =
+        await response.json();
 
-      setReserva(nuevaReserva);
-      setTiempoRestante(nuevaReserva.ttl);
+      setViajeSeleccionado(viaje);
 
-      El frontend NO debe conectarse directamente a Redis.
-    */
+      setAsientosSeleccionados([]);
+
+      /*
+        Limpiamos el nombre cada vez que se abre
+        una nueva selección de reserva.
+      */
+      setNombreReserva("");
+
+      const ocupados =
+        data.asientos
+          .filter(
+            (asiento) =>
+              asiento.estado !== "disponible"
+          )
+          .map(
+            (asiento) =>
+              asiento.numero
+          );
+
+      setAsientosOcupados(ocupados);
+
+    } catch (error) {
+
+      console.error(
+        "Error obteniendo asientos:",
+        error
+      );
+
+      alert(
+        "No se pudieron cargar los asientos"
+      );
+
+    }
+
   };
+
+
+  // ==========================================================
+  // SELECCIONAR ASIENTO
+  // ==========================================================
+
+  const toggleAsiento = (numero) => {
+
+    if (
+      asientosOcupados.includes(numero)
+    ) {
+      return;
+    }
+
+    setAsientosSeleccionados(
+      (actuales) => {
+
+        if (
+          actuales.includes(numero)
+        ) {
+
+          return actuales.filter(
+            (asiento) =>
+              asiento !== numero
+          );
+
+        }
+
+        return [
+          ...actuales,
+          numero
+        ];
+
+      }
+    );
+
+  };
+
+
+  // ==========================================================
+  // CONFIRMAR SELECCION DE ASIENTOS
+  // ==========================================================
+
+  const confirmarSeleccionAsientos = async () => {
+    if (
+        !viajeSeleccionado ||
+        asientosSeleccionados.length === 0 ||
+        nombreUsuario.trim() === ""
+    ) {
+        return;
+    }
+
+    try {
+        const response = await fetch("/api/reservas", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                viajeId: viajeSeleccionado.id,
+                nombre: nombreUsuario.trim(),
+                asientos: asientosSeleccionados,
+            }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            alert(
+                data.error ||
+                "No se pudo crear la reserva"
+            );
+            return;
+        }
+
+        setReserva({
+            ...viajeSeleccionado,
+            ...data,
+            asientos: data.asientos,
+        });
+
+        setTiempoRestante(data.expiraEnSegundos);
+
+        setViajeSeleccionado(null);
+        setAsientosSeleccionados([]);
+        setAsientosOcupados([]);
+        setNombreUsuario("");
+
+        await cargarOrdenes();
+
+    } catch (error) {
+        console.error(
+            "Error creando reserva:",
+            error
+        );
+
+        alert(
+            "Error al crear la reserva"
+        );
+    }
+};
 
 
   // ==========================================================
   // CANCELAR RESERVA
   // ==========================================================
 
-  const cancelarReserva = () => {
+  const cancelarReserva = async () => {
 
-    /*
-      TEMPORAL:
+    if (!reserva) {
+      return;
+    }
 
-      Eliminamos la reserva del estado de React.
-    */
-    setReserva(null);
+    try {
 
-    setTiempoRestante(TIEMPO_RESERVA_MOCK);
+      const response =
+        await fetch(
+          `/api/reservas/${reserva.id}`,
+          {
+            method: "DELETE",
+          }
+        );
 
+      const data =
+        await response.json();
 
-    /*
-      TODO BACKEND / REDIS:
+      if (!response.ok) {
 
-      En la version final, cancelar una reserva
-      debera informar al backend.
+        alert(
+          data.error ||
+          "No se pudo cancelar la reserva"
+        );
 
-      Conceptualmente:
+        return;
+      }
 
-      await apiFetch(`/reservas/${reserva.reservaId}`, {
-        method: "DELETE"
-      });
+      setReserva(null);
 
-      El backend debera eliminar la reserva
-      correspondiente de Redis.
-    */
+      setTiempoRestante(0);
+
+      await cargarOrdenes();
+
+    } catch (error) {
+
+      console.error(
+        "Error cancelando reserva:",
+        error
+      );
+
+      alert(
+        "No se pudo cancelar la reserva"
+      );
+
+    }
+
   };
 
 
@@ -385,76 +491,119 @@ export default function App() {
   // FINALIZAR COMPRA
   // ==========================================================
 
-  const finalizarCompra = () => {
+  const finalizarCompra = async () => {
 
-    if (reserva === null) {
+    if (!reserva) {
       return;
     }
 
+    try {
 
-    /*
-      TEMPORAL:
+      const response =
+        await fetch(
+          `/api/reservas/${reserva.id}/finalizar`,
+          {
+            method: "POST",
+          }
+        );
 
-      Creamos una orden mock utilizando
-      los datos de la reserva actual.
-    */
-    const nuevaOrden = {
+      const data =
+        await response.json();
 
-      id: `ORD-${Date.now()}`,
+      if (!response.ok) {
 
-      viajeId: reserva.id,
+        alert(
+          data.error ||
+          "No se pudo finalizar la compra"
+        );
 
-      empresa: reserva.empresa,
+        return;
+      }
 
-      origen: reserva.origen,
+      console.log(
+        "Compra finalizada:",
+        data
+      );
 
-      destino: reserva.destino,
+      setReserva(null);
 
-      fecha: reserva.fecha,
+      setTiempoRestante(0);
 
-      horaSalida: reserva.horaSalida,
+      await cargarOrdenes();
 
-      precio: reserva.precio,
+    } catch (error) {
 
-      estado: "Esperando"
-    };
+      console.error(
+        "Error finalizando compra:",
+        error
+      );
 
+      alert(
+        "No se pudo finalizar la compra"
+      );
 
-    /*
-      Agregamos la orden al final del array.
+    }
 
-      Esto simula el ingreso al final
-      de una queue FIFO.
-    */
-    setOrdenes((ordenesActuales) => [
-      ...ordenesActuales,
-      nuevaOrden
-    ]);
-
-
-    setReserva(null);
-
-    setTiempoRestante(TIEMPO_RESERVA_MOCK);
+  };
 
 
-    /*
-      TODO BACKEND / REDIS:
+  // ==========================================================
+  // CARGAR ORDENES
+  // ==========================================================
 
-      En la version final, al finalizar la compra
-      deberemos confirmar la reserva mediante la API.
+  const cargarOrdenes = async () => {
 
-      El backend debera:
+    try {
 
-      1. Validar que la reserva siga existiendo.
-      2. Confirmar la compra.
-      3. Eliminar la reserva temporal.
-      4. Crear la orden.
-      5. Agregar la orden a una queue de Redis.
+      const response =
+        await fetch(
+          "/api/reservas"
+        );
 
-      Ejemplo conceptual:
+      if (!response.ok) {
 
-      RPUSH ordenes_queue ordenId
-    */
+        throw new Error(
+          `HTTP ${response.status}`
+        );
+
+      }
+
+      const data =
+        await response.json();
+
+      setOrdenes(data);
+
+    } catch (error) {
+
+      console.error(
+        "Error cargando órdenes:",
+        error
+      );
+
+    }
+
+  };
+
+
+  useEffect(() => {
+
+    cargarOrdenes();
+
+  }, []);
+
+
+  // ==========================================================
+  // BUSCAR DATOS DEL VIAJE DE UNA ORDEN
+  // ==========================================================
+
+  const obtenerViajeDeOrden = (orden) => {
+
+    return viajesCatalogo.find(
+      (viaje) =>
+        String(viaje.id) ===
+        String(orden.viajeId)
+    );
+
   };
 
 
@@ -462,249 +611,190 @@ export default function App() {
   // PROCESAR SIGUIENTE ORDEN
   // ==========================================================
 
-  const procesarSiguienteOrden = () => {
+  const procesarSiguienteOrden =
+    async () => {
 
-    /*
-      TEMPORAL:
+      try {
 
-      Trabajamos directamente con el estado mas reciente
-      de las ordenes.
+        const response =
+          await fetch(
+            "/api/reservas/procesar",
+            {
+              method: "POST",
+            }
+          );
 
-      Buscamos la PRIMERA orden en estado Esperando.
-    */
-    setOrdenes((ordenesActuales) => {
+        const data =
+          await response.json();
 
-      const indiceSiguiente = ordenesActuales.findIndex(
-        (orden) => orden.estado === "Esperando"
-      );
+        if (!response.ok) {
 
-      if (indiceSiguiente === -1) {
-        return ordenesActuales;
+          alert(
+            data.error ||
+            "No hay reservas para procesar"
+          );
+
+          return;
+        }
+
+        console.log(
+          "Reserva procesada:",
+          data
+        );
+
+        await cargarOrdenes();
+
+      } catch (error) {
+
+        console.error(
+          "Error procesando reserva:",
+          error
+        );
+
+        alert(
+          "No se pudo procesar la reserva"
+        );
+
       }
 
-      const nuevasOrdenes = [...ordenesActuales];
-
-      nuevasOrdenes[indiceSiguiente] = {
-        ...nuevasOrdenes[indiceSiguiente],
-        estado: "Procesando"
-      };
-
-      return nuevasOrdenes;
-
-    });
-
-
-    /*
-      TODO BACKEND / REDIS:
-
-      En la version final esta accion debera
-      realizarse a traves del backend.
-
-      El backend sera responsable de obtener
-      la siguiente orden de la queue respetando FIFO.
-
-      Conceptualmente:
-
-      await apiFetch("/ordenes/procesar-siguiente", {
-        method: "POST"
-      });
-
-      Redis podria utilizar una operacion como LPOP,
-      dependiendo de la implementacion final.
-    */
-  };
+    };
 
 
   // ==========================================================
   // RESOLVER SIGUIENTE ORDEN
   // ==========================================================
 
-  const resolverSiguienteOrden = () => {
+  const resolverSiguienteOrden =
+    async () => {
 
-    /*
-      TEMPORAL:
+      try {
 
-      Buscamos la PRIMERA orden que se encuentre
-      actualmente en estado Procesando.
-    */
-    setOrdenes((ordenesActuales) => {
+        const response =
+          await fetch(
+            "/api/reservas/resolver",
+            {
+              method: "POST",
+            }
+          );
 
-      const indiceSiguiente = ordenesActuales.findIndex(
-        (orden) => orden.estado === "Procesando"
-      );
+        const data =
+          await response.json();
 
-      if (indiceSiguiente === -1) {
-        return ordenesActuales;
+        if (!response.ok) {
+
+          alert(
+            data.error ||
+            "No hay reservas para resolver"
+          );
+
+          return;
+        }
+
+        console.log(
+          "Reserva resuelta:",
+          data
+        );
+
+        await cargarOrdenes();
+
+      } catch (error) {
+
+        console.error(
+          "Error resolviendo reserva:",
+          error
+        );
+
+        alert(
+          "No se pudo resolver la reserva"
+        );
+
       }
 
-      const nuevasOrdenes = [...ordenesActuales];
-
-      nuevasOrdenes[indiceSiguiente] = {
-        ...nuevasOrdenes[indiceSiguiente],
-        estado: "Resuelta"
-      };
-
-      return nuevasOrdenes;
-
-    });
-
-
-    /*
-      TODO BACKEND / REDIS:
-
-      En la version final deberemos informar
-      al backend que la orden fue resuelta.
-
-      Conceptualmente:
-
-      await apiFetch("/ordenes/resolver-siguiente", {
-        method: "POST"
-      });
-    */
-  };
+    };
 
 
   // ==========================================================
   // CONSULTAR CATALOGO / CACHE
   // ==========================================================
 
-  const consultarCatalogo = () => {
+  const consultarCatalogo = async () => {
 
-    /*
-      TEMPORAL:
+    try {
 
-      Simulamos el comportamiento de un cache.
+      const response =
+        await fetch(
+          "/api/viajes/catalogo"
+        );
 
-      Si catalogoEnCache es false:
-      CACHE MISS.
+      const data =
+        await response.json();
 
-      Si catalogoEnCache es true:
-      CACHE HIT.
-    */
+      if (!response.ok) {
 
-    if (catalogoEnCache) {
+        throw new Error(
+          data.error ||
+          `HTTP ${response.status}`
+        );
 
-      /*
-        CACHE HIT
+      }
 
-        Simulamos que encontramos el catalogo
-        directamente en la cache.
-      */
-      setCacheHits((hitsActuales) => hitsActuales + 1);
+      console.log(
+        "Consulta catálogo:",
+        data
+      );
 
-      setUltimaConsultaCache("HIT");
+      setCatalogo(
+        data.catalogo
+      );
 
-      /*
-        Como los datos ya estaban cacheados,
-        simplemente los mostramos.
-      */
-      setCatalogo(viajesMock);
+      setCacheHits(
+        data.cacheHits
+      );
 
-    } else {
+      setCacheMisses(
+        data.cacheMisses
+      );
 
-      /*
-        CACHE MISS
-
-        Simulamos que Redis no tenia el catalogo.
-
-        Entonces obtenemos los datos desde
-        nuestra fuente temporal viajesMock.
-      */
-      setCacheMisses((missesActuales) => missesActuales + 1);
-
-      setUltimaConsultaCache("MISS");
-
+      setUltimaConsultaCache(
+        data.cacheStatus
+      );
 
       /*
-        Mostramos los datos obtenidos.
+        También guardamos los viajes del catálogo
+        para poder relacionarlos con las órdenes.
       */
-      setCatalogo(viajesMock);
+      setViajesCatalogo(
+        data.catalogo
+      );
 
+    } catch (error) {
 
-      /*
-        Marcamos que el catalogo quedo guardado
-        en nuestra cache simulada.
-
-        Por eso la proxima consulta sera HIT.
-      */
-      setCatalogoEnCache(true);
+      console.error(
+        "Error consultando catálogo:",
+        error
+      );
 
     }
 
-
-    /*
-      TODO BACKEND / REDIS:
-
-      TODA esta simulacion debera eliminarse
-      cuando el backend implemente el cache real.
-
-      El frontend podria hacer algo como:
-
-      const respuesta = await apiFetch("/catalogo");
-
-      setCatalogo(respuesta.catalogo);
-
-      setCacheHits(respuesta.cacheHits);
-
-      setCacheMisses(respuesta.cacheMisses);
-
-      setUltimaConsultaCache(respuesta.cacheStatus);
-
-
-      El BACKEND debera implementar el patron:
-
-      1. Buscar catalogo en Redis.
-
-         GET catalogo
-
-      2. Si existe:
-
-         CACHE HIT
-
-         devolver el catalogo desde Redis.
-
-      3. Si NO existe:
-
-         CACHE MISS
-
-         obtener los datos desde la fuente original.
-
-         Guardarlos en Redis.
-
-         Ejemplo conceptual:
-
-         SET catalogo {...datos...} EX 600
-
-      4. Devolver al frontend:
-
-         - catalogo
-         - cantidad de hits
-         - cantidad de misses
-         - resultado de la consulta actual
-
-
-      IMPORTANTE:
-
-      El frontend NO determina realmente si fue
-      HIT o MISS en la version final.
-
-      Esa informacion debe venir del backend,
-      porque es el backend quien consulta Redis.
-    */
   };
 
 
   // ==========================================================
-  // FORMATEAR EL CONTADOR
+  // FORMATEAR TIEMPO
   // ==========================================================
 
   const formatearTiempo = (segundos) => {
 
-    const minutos = Math.floor(segundos / 60);
+    const minutos =
+      Math.floor(segundos / 60);
 
-    const segundosRestantes = segundos % 60;
+    const segundosRestantes =
+      segundos % 60;
 
-    return `${String(minutos).padStart(2, "0")}:${String(
+    return `${String(minutos).padStart(
+      2,
+      "0"
+    )}:${String(
       segundosRestantes
     ).padStart(2, "0")}`;
 
@@ -727,10 +817,23 @@ export default function App() {
         <h1>RediBus</h1>
 
         <nav>
-          <a href="#buscar">Buscar viajes</a>
-          <a href="#reserva">Mi reserva</a>
-          <a href="#ordenes">Ordenes</a>
-          <a href="#cache">Cache</a>
+
+          <a href="#buscar">
+            Buscar viajes
+          </a>
+
+          <a href="#reserva">
+            Mi reserva
+          </a>
+
+          <a href="#ordenes">
+            Ordenes
+          </a>
+
+          <a href="#cache">
+            Cache
+          </a>
+
         </nav>
 
       </header>
@@ -770,7 +873,11 @@ export default function App() {
                 id="origen"
                 placeholder="Ej: Montevideo"
                 value={origen}
-                onChange={(event) => setOrigen(event.target.value)}
+                onChange={(event) =>
+                  setOrigen(
+                    event.target.value
+                  )
+                }
               />
 
             </div>
@@ -787,7 +894,11 @@ export default function App() {
                 id="destino"
                 placeholder="Ej: Punta del Este"
                 value={destino}
-                onChange={(event) => setDestino(event.target.value)}
+                onChange={(event) =>
+                  setDestino(
+                    event.target.value
+                  )
+                }
               />
 
             </div>
@@ -803,7 +914,11 @@ export default function App() {
                 type="date"
                 id="fecha"
                 value={fecha}
-                onChange={(event) => setFecha(event.target.value)}
+                onChange={(event) =>
+                  setFecha(
+                    event.target.value
+                  )
+                }
               />
 
             </div>
@@ -823,83 +938,138 @@ export default function App() {
           <div className="resultados">
 
             <p>
-              Cantidad encontrada: {viajesEncontrados.length}
+              Cantidad encontrada:{" "}
+              {viajesEncontrados.length}
             </p>
 
 
-            {viajesEncontrados.map((viaje) => {
+            {viajesEncontrados.map(
+              (viaje) => {
 
-              const estaReservado =
-                reserva !== null &&
-                reserva.id === viaje.id;
-
-
-              return (
-
-                <div
-                  className="viaje"
-                  key={viaje.id}
-                >
-
-                  <h3>
-                    {viaje.empresa}
-                  </h3>
-
-                  <p>
-                    {viaje.origen} - {viaje.destino}
-                  </p>
-
-                  <p>
-                    Salida: {viaje.horaSalida}
-                  </p>
-
-                  <p>
-                    Llegada: {viaje.horaLlegada}
-                  </p>
-
-                  <p>
-                    Precio: ${viaje.precio}
-                  </p>
-
-                  <p>
-                    Asientos disponibles: {viaje.asientosDisponibles}
-                  </p>
+                const estaReservado =
+                  reserva !== null &&
+                  String(reserva.id) ===
+                    String(viaje.id);
 
 
-                  <button
-                    type="button"
-                    className="btn-reservar"
-                    onClick={() => reservarViaje(viaje)}
+                return (
+
+                  <div
+                    className="viaje"
+                    key={viaje.id}
                   >
-                    {estaReservado
-                      ? "Seleccionado"
-                      : "Reservar"}
-                  </button>
+
+                    <h3>
+                      Viaje #{viaje.id}
+                    </h3>
+
+                    <p>
+                      {viaje.origen} -{" "}
+                      {viaje.destino}
+                    </p>
+
+                    <p>
+                      Fecha:{" "}
+                      {viaje.fecha}
+                    </p>
+
+                    <p>
+                      Salida:{" "}
+                      {viaje.horaSalida}
+                    </p>
+
+                    <p>
+                      Llegada:{" "}
+                      {viaje.horaLlegada}
+                    </p>
+
+                    <p>
+                      Precio: $
+                      {viaje.precio}
+                    </p>
+
+                    <p>
+                      Asientos disponibles:{" "}
+                      {viaje.asientosDisponibles}
+                    </p>
 
 
-                  {estaReservado && (
+                    <button
+                      type="button"
+                      className="btn-reservar"
+                      onClick={() =>
+                        reservarViaje(viaje)
+                      }
+                    >
 
-                    <div className="reserva-confirmacion">
+                      {estaReservado
+                        ? "Seleccionado"
+                        : "Reservar"}
 
-                      <p>
-                        Viaje seleccionado para reservar.
-                      </p>
+                    </button>
 
-                      <p>
-                        Tiempo restante: {formatearTiempo(tiempoRestante)}
-                      </p>
 
-                    </div>
+                    {estaReservado && (
 
-                  )}
+                      <div className="reserva-confirmacion">
 
-                </div>
+                        <p>
+                          Viaje seleccionado
+                          para reservar.
+                        </p>
 
-              );
+                        <p>
+                          Tiempo restante:{" "}
+                          {formatearTiempo(
+                            tiempoRestante
+                          )}
+                        </p>
 
-            })}
+                      </div>
+
+                    )}
+
+                  </div>
+
+                );
+
+              }
+            )}
 
           </div>
+
+
+          {/* ==================================================
+              SELECTOR DE ASIENTOS
+              ================================================== */}
+
+          {viajeSeleccionado !== null && (
+
+            <div>
+
+              <SelectorAsientos
+                  capacidad={Number(viajeSeleccionado.capacidad || 20)}
+                  asientosOcupados={asientosOcupados}
+                  asientosSeleccionados={asientosSeleccionados}
+                  onToggleAsiento={toggleAsiento}
+                  onConfirmar={confirmarSeleccionAsientos}
+                  onCancelar={() => {
+                      setViajeSeleccionado(null);
+                      setAsientosSeleccionados([]);
+                      setAsientosOcupados([]);
+                      setNombreUsuario("");
+                  }}
+                  precio={viajeSeleccionado.precio}
+                  nombreUsuario={nombreUsuario}
+                  onNombreUsuarioChange={setNombreUsuario}
+              />
+
+
+              
+
+            </div>
+
+          )}
 
         </section>
 
@@ -926,42 +1096,59 @@ export default function App() {
             <div className="viaje">
 
               <h3>
-                Reserva activa
+                Reserva #{reserva.id}
               </h3>
 
               <p>
-                Empresa: {reserva.empresa}
+                Usuario:{" "}
+                <strong>
+                  {reserva.nombre}
+                </strong>
               </p>
 
               <p>
-                Ruta: {reserva.origen} - {reserva.destino}
+                Ruta:{" "}
+                {reserva.origen} -{" "}
+                {reserva.destino}
               </p>
 
               <p>
-                Fecha: {reserva.fecha}
+                Fecha:{" "}
+                {reserva.fecha}
               </p>
 
               <p>
-                Salida: {reserva.horaSalida}
+                Salida:{" "}
+                {reserva.horaSalida}
               </p>
 
               <p>
-                Llegada: {reserva.horaLlegada}
+                Llegada:{" "}
+                {reserva.horaLlegada}
               </p>
 
               <p>
-                Precio: ${reserva.precio}
+                Asientos:{" "}
+                {reserva.asientos?.join(", ")}
+              </p>
+
+              <p>
+                Precio: $
+                {reserva.precio}
               </p>
 
 
               <div className="contador-reserva">
 
                 <span>
-                  Tiempo restante para finalizar la compra
+                  Tiempo restante para finalizar
+                  la compra
                 </span>
 
                 <strong>
-                  {formatearTiempo(tiempoRestante)}
+                  {formatearTiempo(
+                    tiempoRestante
+                  )}
                 </strong>
 
               </div>
@@ -972,7 +1159,9 @@ export default function App() {
                 <button
                   type="button"
                   className="btn-finalizar"
-                  onClick={finalizarCompra}
+                  onClick={
+                    finalizarCompra
+                  }
                 >
                   Finalizar compra
                 </button>
@@ -981,7 +1170,9 @@ export default function App() {
                 <button
                   type="button"
                   className="btn-cancelar"
-                  onClick={cancelarReserva}
+                  onClick={
+                    cancelarReserva
+                  }
                 >
                   Cancelar reserva
                 </button>
@@ -1006,7 +1197,8 @@ export default function App() {
           </h2>
 
           <p>
-            Las ordenes se procesan respetando el orden de llegada.
+            Las ordenes se procesan respetando
+            el orden de llegada.
           </p>
 
 
@@ -1015,7 +1207,9 @@ export default function App() {
             <button
               type="button"
               className="btn-procesar"
-              onClick={procesarSiguienteOrden}
+              onClick={
+                procesarSiguienteOrden
+              }
             >
               Procesar siguiente
             </button>
@@ -1024,7 +1218,9 @@ export default function App() {
             <button
               type="button"
               className="btn-resolver"
-              onClick={resolverSiguienteOrden}
+              onClick={
+                resolverSiguienteOrden
+              }
             >
               Resolver siguiente
             </button>
@@ -1042,53 +1238,128 @@ export default function App() {
 
             <div className="lista-ordenes">
 
-              {ordenes.map((orden, index) => (
+              {ordenes.map(
+                (orden, index) => {
 
-                <div
-                  className="orden"
-                  key={orden.id}
-                >
+                  const viaje =
+                    obtenerViajeDeOrden(
+                      orden
+                    );
 
-                  <h3>
-                    {orden.id}
-                  </h3>
 
-                  <p>
-                    Posicion de llegada: {index + 1}
-                  </p>
+                  return (
 
-                  <p>
-                    Empresa: {orden.empresa}
-                  </p>
-
-                  <p>
-                    Ruta: {orden.origen} - {orden.destino}
-                  </p>
-
-                  <p>
-                    Fecha: {orden.fecha}
-                  </p>
-
-                  <p>
-                    Salida: {orden.horaSalida}
-                  </p>
-
-                  <p>
-                    Precio: ${orden.precio}
-                  </p>
-
-                  <p>
-                    Estado:
-                    <span
-                      className={`estado-orden ${orden.estado.toLowerCase()}`}
+                    <div
+                      className="orden"
+                      key={orden.id}
                     >
-                      {orden.estado}
-                    </span>
-                  </p>
 
-                </div>
+                      <h3>
+                        Reserva #{orden.id}
+                      </h3>
 
-              ))}
+                      <p>
+                        Posicion de llegada:{" "}
+                        {index + 1}
+                      </p>
+
+                      {/* USUARIO */}
+
+                      <p>
+                        Usuario:{" "}
+                        <strong>
+                          {orden.nombre ||
+                            "Sin nombre"}
+                        </strong>
+                      </p>
+
+
+                      {/* VIAJE */}
+
+                      <p>
+                        Viaje:{" "}
+                        #{orden.viajeId}
+                      </p>
+
+
+                      {viaje ? (
+
+                        <>
+
+                          <p>
+                            Ruta:{" "}
+                            {viaje.origen} -{" "}
+                            {viaje.destino}
+                          </p>
+
+                          <p>
+                            Fecha:{" "}
+                            {viaje.fecha}
+                          </p>
+
+                          <p>
+                            Salida:{" "}
+                            {viaje.horaSalida}
+                          </p>
+
+                          <p>
+                            Llegada:{" "}
+                            {viaje.horaLlegada}
+                          </p>
+
+                          <p>
+                            Precio: $
+                            {viaje.precio}
+                          </p>
+
+                        </>
+
+                      ) : (
+
+                        <p>
+                          Datos del viaje no
+                          disponibles en memoria.
+                        </p>
+
+                      )}
+
+
+                      {/* ASIENTOS */}
+
+                      <p>
+                        Asientos:{" "}
+                        {orden.asientos
+                          ? JSON.parse(
+                              orden.asientos
+                            ).join(", ")
+                          : "N/A"}
+                      </p>
+
+
+                      {/* ESTADO */}
+
+                      <p>
+
+                        Estado:
+
+                        <span
+                          className={`estado-orden ${
+                            orden.estado.toLowerCase()
+                          }`}
+                        >
+
+                          {orden.estado}
+
+                        </span>
+
+                      </p>
+
+                    </div>
+
+                  );
+
+                }
+              )}
 
             </div>
 
@@ -1108,13 +1379,11 @@ export default function App() {
           </h2>
 
           <p>
-            Consulta el catalogo y observa si se produce un cache hit o un cache miss.
+            Consulta el catalogo y observa
+            si se produce un cache hit o
+            un cache miss.
           </p>
 
-
-          {/* ==================================================
-              ESTADISTICAS DE CACHE
-              ================================================== */}
 
           <div className="cache-estadisticas">
 
@@ -1146,36 +1415,32 @@ export default function App() {
           </div>
 
 
-          {/* Boton que realiza una consulta al catalogo */}
           <button
             type="button"
             className="btn-catalogo"
-            onClick={consultarCatalogo}
+            onClick={
+              consultarCatalogo
+            }
           >
             Consultar catalogo
           </button>
 
 
-          {/* ==================================================
-              RESULTADO DE LA ULTIMA CONSULTA
-              ================================================== */}
-
           {ultimaConsultaCache !== null && (
 
             <div
-              className={`resultado-cache ${ultimaConsultaCache.toLowerCase()}`}
+              className={`resultado-cache ${
+                ultimaConsultaCache.toLowerCase()
+              }`}
             >
 
-              Ultima consulta: CACHE {ultimaConsultaCache}
+              Ultima consulta: CACHE{" "}
+              {ultimaConsultaCache}
 
             </div>
 
           )}
 
-
-          {/* ==================================================
-              CATALOGO
-              ================================================== */}
 
           {catalogo.length > 0 && (
 
@@ -1186,32 +1451,39 @@ export default function App() {
               </h3>
 
 
-              {catalogo.map((viaje) => (
+              {catalogo.map(
+                (viaje) => (
 
-                <div
-                  className="catalogo-item"
-                  key={viaje.id}
-                >
+                  <div
+                    className="catalogo-item"
+                    key={viaje.id}
+                  >
 
-                  <strong>
-                    {viaje.empresa}
-                  </strong>
+                    <strong>
+                      Viaje #{viaje.id}
+                    </strong>
 
-                  <span>
-                    {viaje.origen} - {viaje.destino}
-                  </span>
+                    <span>
+                      {viaje.origen} -{" "}
+                      {viaje.destino}
+                    </span>
 
-                  <span>
-                    {viaje.horaSalida}
-                  </span>
+                    <span>
+                      {viaje.fecha}
+                    </span>
 
-                  <span>
-                    ${viaje.precio}
-                  </span>
+                    <span>
+                      {viaje.horaSalida}
+                    </span>
 
-                </div>
+                    <span>
+                      ${viaje.precio}
+                    </span>
 
-              ))}
+                  </div>
+
+                )
+              )}
 
             </div>
 
@@ -1232,9 +1504,9 @@ export default function App() {
 
         </section>
 
-
       </main>
 
     </>
   );
+
 }

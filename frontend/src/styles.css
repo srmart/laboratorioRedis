@@ -783,3 +783,329 @@ section p {
         gap: 5px;
     }
 }
+
+/* ==========================================================
+   SELECTOR DE ASIENTOS
+   ========================================================== */
+
+.selector-asientos {
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 20px;
+    padding: 24px;
+    border: 1px solid #cfd4dc;
+    border-radius: 12px;
+    background: #f1f3f5;
+}
+
+.selector-asientos h3 {
+    margin: 0 0 20px;
+    color: #1f2937;
+}
+
+
+/* ==========================================================
+   LEYENDA
+   ========================================================== */
+
+.leyenda-asientos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-bottom: 20px;
+}
+
+.leyenda-asientos span {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #374151;
+}
+
+.asiento-demo {
+    width: 18px;
+    height: 18px;
+    display: inline-block;
+    border: 1px solid #9ca3af;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.asiento-demo.disponible {
+    background: #ffffff;
+}
+
+.asiento-demo.seleccionado {
+    background: #2563eb;
+}
+
+.asiento-demo.ocupado {
+    background: #9ca3af;
+}
+
+
+/* ==========================================================
+   BUS
+   ========================================================== */
+
+.bus {
+    width: min(650px, 100%);
+    margin: 0 auto;
+    padding: 20px;
+
+    box-sizing: border-box;
+
+    border: 2px solid #b9bec7;
+    border-radius: 16px;
+
+    background: #dfe2e7;
+}
+
+
+/* ==========================================================
+   CONDUCTOR
+   ========================================================== */
+
+.bus-conductor {
+    width: 100%;
+    box-sizing: border-box;
+
+    padding: 10px;
+    margin-bottom: 18px;
+
+    text-align: center;
+
+    font-weight: bold;
+
+    border-radius: 8px;
+
+    background: #c8ccd3;
+    color: #1f2937;
+}
+
+
+/* ==========================================================
+   FILAS
+   ========================================================== */
+
+.asientos-bus {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+
+.fila-asientos {
+    display: grid;
+
+    /*
+       ASIENTO  ASIENTO   PASILLO   ASIENTO  ASIENTO
+
+          1       2                  3       4
+          5       6                  7       8
+          9      10                 11      12
+    */
+
+    grid-template-columns:
+        1fr
+        1fr
+        60px
+        1fr
+        1fr;
+
+    align-items: center;
+}
+
+
+/* ==========================================================
+   ASIENTOS
+   ========================================================== */
+
+.asiento {
+    width: 48px;
+    height: 42px;
+
+    justify-self: center;
+
+    border: 1px solid #9ca3af;
+    border-radius: 7px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.1s ease,
+        background 0.15s ease;
+}
+
+
+.asiento:hover:not(:disabled) {
+    transform: translateY(-1px);
+}
+
+
+.asiento.disponible {
+    background: #ffffff;
+    color: #111827;
+}
+
+
+.asiento.seleccionado {
+    background: #2563eb;
+    color: white;
+
+    border-color: #1d4ed8;
+}
+
+
+.asiento.ocupado {
+    background: #9ca3af;
+    color: #374151;
+
+    cursor: not-allowed;
+}
+
+
+.asiento-vacio {
+    width: 48px;
+    height: 42px;
+
+    justify-self: center;
+}
+
+
+/* ==========================================================
+   PASILLO
+   ========================================================== */
+
+.pasillo {
+    width: 100%;
+    height: 1px;
+}
+
+
+/* ==========================================================
+   RESPONSIVE
+   ========================================================== */
+
+@media (max-width: 600px) {
+
+    .bus {
+        padding: 12px;
+    }
+
+    .fila-asientos {
+        grid-template-columns:
+            1fr
+            1fr
+            35px
+            1fr
+            1fr;
+    }
+
+    .asiento,
+    .asiento-vacio {
+        width: 40px;
+        height: 38px;
+    }
+}
+
+
+/* ==========================================================
+   RESUMEN
+   ========================================================== */
+
+.resumen-asientos {
+    margin-top: 24px;
+    padding: 16px;
+
+    border: 1px solid #d5d9df;
+    border-radius: 8px;
+
+    background: #ffffff;
+}
+
+.resumen-asientos p {
+    margin: 4px 0;
+    color: #667085;
+}
+
+
+/* ==========================================================
+   DATOS DEL USUARIO
+   ========================================================== */
+
+.datos-reserva {
+    margin-top: 20px;
+}
+
+.datos-reserva label {
+    display: block;
+    margin-bottom: 8px;
+
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.datos-reserva input {
+    width: 100%;
+    box-sizing: border-box;
+
+    padding: 11px;
+
+    border: 1px solid #c7ced8;
+    border-radius: 7px;
+
+    font-size: 14px;
+}
+
+.datos-reserva input:focus {
+    outline: none;
+    border-color: #2563eb;
+}
+
+.datos-reserva p {
+    margin-top: 8px;
+
+    font-size: 14px;
+    color: #667085;
+}
+
+
+/* ==========================================================
+   BOTONES
+   ========================================================== */
+
+.acciones-asientos {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.acciones-asientos button {
+    padding: 11px 20px;
+
+    border: none;
+    border-radius: 7px;
+
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-finalizar {
+    background: #2563eb;
+    color: white;
+}
+
+.btn-finalizar:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-cancelar {
+    background: #dc2626;
+    color: white;
+}
+
+

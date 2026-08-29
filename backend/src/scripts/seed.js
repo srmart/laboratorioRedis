@@ -22,7 +22,7 @@ const viajes = [
     horaLlegada: "13:00",
     tipoBus: "Común",
     precio: 350,
-    asientosDisponibles: 20,
+    capacidad: 20,
   },
   {
     id: "2",
@@ -33,7 +33,7 @@ const viajes = [
     horaLlegada: "16:15",
     tipoBus: "Directo",
     precio: 350,
-    asientosDisponibles: 20,
+    capacidad: 20,
   },
   {
     id: "3",
@@ -44,7 +44,7 @@ const viajes = [
     horaLlegada: "10:00",
     tipoBus: "Directo",
     precio: 350,
-    asientosDisponibles: 30,
+    capacidad: 30,
   },
   {
     id: "4",
@@ -55,7 +55,7 @@ const viajes = [
     horaLlegada: "11:00",
     tipoBus: "Común",
     precio: 350,
-    asientosDisponibles: 25,
+    capacidad: 25,
   },
   {
     id: "5",
@@ -66,7 +66,7 @@ const viajes = [
     horaLlegada: "19:30",
     tipoBus: "Directo",
     precio: 400,
-    asientosDisponibles: 20,
+    capacidad: 20,
   },
 
   {
@@ -78,7 +78,7 @@ const viajes = [
     horaLlegada: "09:30",
     tipoBus: "Común",
     precio: 180,
-    asientosDisponibles: 35,
+    capacidad: 35,
   },
   {
     id: "7",
@@ -89,7 +89,7 @@ const viajes = [
     horaLlegada: "14:00",
     tipoBus: "Directo",
     precio: 220,
-    asientosDisponibles: 25,
+    capacidad: 25,
   },
   {
     id: "8",
@@ -100,7 +100,7 @@ const viajes = [
     horaLlegada: "11:00",
     tipoBus: "Común",
     precio: 180,
-    asientosDisponibles: 30,
+    capacidad: 30,
   },
   {
     id: "9",
@@ -111,7 +111,7 @@ const viajes = [
     horaLlegada: "19:00",
     tipoBus: "Directo",
     precio: 220,
-    asientosDisponibles: 25,
+    capacidad: 25,
   },
 
   {
@@ -123,7 +123,7 @@ const viajes = [
     horaLlegada: "09:00",
     tipoBus: "Común",
     precio: 250,
-    asientosDisponibles: 30,
+    capacidad: 30,
   },
   {
     id: "11",
@@ -134,7 +134,7 @@ const viajes = [
     horaLlegada: "16:30",
     tipoBus: "Directo",
     precio: 300,
-    asientosDisponibles: 20,
+    capacidad: 20,
   },
   {
     id: "12",
@@ -145,7 +145,7 @@ const viajes = [
     horaLlegada: "12:00",
     tipoBus: "Común",
     precio: 250,
-    asientosDisponibles: 25,
+    capacidad: 25,
   },
   {
     id: "13",
@@ -156,7 +156,7 @@ const viajes = [
     horaLlegada: "18:30",
     tipoBus: "Directo",
     precio: 300,
-    asientosDisponibles: 20,
+    capacidad: 20,
   },
 
   {
@@ -168,7 +168,7 @@ const viajes = [
     horaLlegada: "10:30",
     tipoBus: "Común",
     precio: 250,
-    asientosDisponibles: 20,
+    capacidad: 20,
   },
   {
     id: "15",
@@ -179,7 +179,7 @@ const viajes = [
     horaLlegada: "15:30",
     tipoBus: "Directo",
     precio: 300,
-    asientosDisponibles: 15,
+    capacidad: 15,
   },
   {
     id: "16",
@@ -190,7 +190,7 @@ const viajes = [
     horaLlegada: "10:00",
     tipoBus: "Común",
     precio: 280,
-    asientosDisponibles: 25,
+    capacidad: 25,
   },
   {
     id: "17",
@@ -201,7 +201,7 @@ const viajes = [
     horaLlegada: "17:30",
     tipoBus: "Directo",
     precio: 330,
-    asientosDisponibles: 20,
+    capacidad: 20,
   },
 ];
 
@@ -217,8 +217,8 @@ for (const viaje of viajes) {
   });
 
   await redisClient.set(
-    `viaje:${viaje.id}:asientos`,
-    viaje.asientosDisponibles,
+    `viaje:${viaje.id}:capacidad`,
+    viaje.capacidad,
   );
 }
 

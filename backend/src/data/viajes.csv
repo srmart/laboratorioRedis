@@ -1,0 +1,461 @@
+id,origen,destino,fecha,horaSalida,horaLlegada,tipoBus,precio,capacidad
+1,Florida,Montevideo,31/08/2026,08:00,10:00,Directo,350,30
+2,Florida,Montevideo,31/08/2026,11:00,13:00,Común,350,20
+3,Florida,Montevideo,31/08/2026,14:15,16:15,Directo,350,20
+4,Montevideo,Florida,31/08/2026,09:00,11:00,Común,350,25
+5,Montevideo,Florida,31/08/2026,17:30,19:30,Directo,400,20
+6,Montevideo,Canelones,31/08/2026,08:30,09:30,Común,180,35
+7,Montevideo,Canelones,31/08/2026,13:00,14:00,Directo,220,25
+8,Canelones,Montevideo,31/08/2026,10:00,11:00,Común,180,30
+9,Canelones,Montevideo,31/08/2026,18:00,19:00,Directo,220,25
+10,Montevideo,San José,31/08/2026,07:30,09:00,Común,250,30
+11,Florida,Montevideo,01/09/2026,11:00,13:00,Común,350,20
+12,Florida,Montevideo,01/09/2026,14:15,16:15,Directo,350,20
+13,Montevideo,Florida,01/09/2026,09:00,11:00,Común,350,25
+14,Montevideo,Florida,01/09/2026,17:30,19:30,Directo,400,20
+15,Montevideo,Canelones,01/09/2026,08:30,09:30,Común,180,35
+16,Montevideo,Canelones,01/09/2026,13:00,14:00,Directo,220,25
+17,Canelones,Montevideo,01/09/2026,10:00,11:00,Común,180,30
+18,Canelones,Montevideo,01/09/2026,18:00,19:00,Directo,220,25
+19,Montevideo,San José,01/09/2026,07:30,09:00,Común,250,30
+20,Montevideo,San José,01/09/2026,15:00,16:30,Directo,300,20
+21,Florida,Montevideo,02/09/2026,14:15,16:15,Directo,350,20
+22,Montevideo,Florida,02/09/2026,09:00,11:00,Común,350,25
+23,Montevideo,Florida,02/09/2026,17:30,19:30,Directo,400,20
+24,Montevideo,Canelones,02/09/2026,08:30,09:30,Común,180,35
+25,Montevideo,Canelones,02/09/2026,13:00,14:00,Directo,220,25
+26,Canelones,Montevideo,02/09/2026,10:00,11:00,Común,180,30
+27,Canelones,Montevideo,02/09/2026,18:00,19:00,Directo,220,25
+28,Montevideo,San José,02/09/2026,07:30,09:00,Común,250,30
+29,Montevideo,San José,02/09/2026,15:00,16:30,Directo,300,20
+30,San José,Montevideo,02/09/2026,10:30,12:00,Común,250,25
+31,Montevideo,Florida,03/09/2026,09:00,11:00,Común,350,25
+32,Montevideo,Florida,03/09/2026,17:30,19:30,Directo,400,20
+33,Montevideo,Canelones,03/09/2026,08:30,09:30,Común,180,35
+34,Montevideo,Canelones,03/09/2026,13:00,14:00,Directo,220,25
+35,Canelones,Montevideo,03/09/2026,10:00,11:00,Común,180,30
+36,Canelones,Montevideo,03/09/2026,18:00,19:00,Directo,220,25
+37,Montevideo,San José,03/09/2026,07:30,09:00,Común,250,30
+38,Montevideo,San José,03/09/2026,15:00,16:30,Directo,300,20
+39,San José,Montevideo,03/09/2026,10:30,12:00,Común,250,25
+40,San José,Montevideo,03/09/2026,17:00,18:30,Directo,300,20
+41,Montevideo,Florida,04/09/2026,17:30,19:30,Directo,400,20
+42,Montevideo,Canelones,04/09/2026,08:30,09:30,Común,180,35
+43,Montevideo,Canelones,04/09/2026,13:00,14:00,Directo,220,25
+44,Canelones,Montevideo,04/09/2026,10:00,11:00,Común,180,30
+45,Canelones,Montevideo,04/09/2026,18:00,19:00,Directo,220,25
+46,Montevideo,San José,04/09/2026,07:30,09:00,Común,250,30
+47,Montevideo,San José,04/09/2026,15:00,16:30,Directo,300,20
+48,San José,Montevideo,04/09/2026,10:30,12:00,Común,250,25
+49,San José,Montevideo,04/09/2026,17:00,18:30,Directo,300,20
+50,Florida,Canelones,04/09/2026,09:00,10:30,Común,250,20
+51,Montevideo,Canelones,05/09/2026,08:30,09:30,Común,180,35
+52,Montevideo,Canelones,05/09/2026,13:00,14:00,Directo,220,25
+53,Canelones,Montevideo,05/09/2026,10:00,11:00,Común,180,30
+54,Canelones,Montevideo,05/09/2026,18:00,19:00,Directo,220,25
+55,Montevideo,San José,05/09/2026,07:30,09:00,Común,250,30
+56,Montevideo,San José,05/09/2026,15:00,16:30,Directo,300,20
+57,San José,Montevideo,05/09/2026,10:30,12:00,Común,250,25
+58,San José,Montevideo,05/09/2026,17:00,18:30,Directo,300,20
+59,Florida,Canelones,05/09/2026,09:00,10:30,Común,250,20
+60,Canelones,Florida,05/09/2026,14:00,15:30,Directo,300,15
+61,Montevideo,Canelones,06/09/2026,13:00,14:00,Directo,220,25
+62,Canelones,Montevideo,06/09/2026,10:00,11:00,Común,180,30
+63,Canelones,Montevideo,06/09/2026,18:00,19:00,Directo,220,25
+64,Montevideo,San José,06/09/2026,07:30,09:00,Común,250,30
+65,Montevideo,San José,06/09/2026,15:00,16:30,Directo,300,20
+66,San José,Montevideo,06/09/2026,10:30,12:00,Común,250,25
+67,San José,Montevideo,06/09/2026,17:00,18:30,Directo,300,20
+68,Florida,Canelones,06/09/2026,09:00,10:30,Común,250,20
+69,Canelones,Florida,06/09/2026,14:00,15:30,Directo,300,15
+70,Florida,San José,06/09/2026,08:30,10:00,Común,280,25
+71,Canelones,Montevideo,07/09/2026,10:00,11:00,Común,180,30
+72,Canelones,Montevideo,07/09/2026,18:00,19:00,Directo,220,25
+73,Montevideo,San José,07/09/2026,07:30,09:00,Común,250,30
+74,Montevideo,San José,07/09/2026,15:00,16:30,Directo,300,20
+75,San José,Montevideo,07/09/2026,10:30,12:00,Común,250,25
+76,San José,Montevideo,07/09/2026,17:00,18:30,Directo,300,20
+77,Florida,Canelones,07/09/2026,09:00,10:30,Común,250,20
+78,Canelones,Florida,07/09/2026,14:00,15:30,Directo,300,15
+79,Florida,San José,07/09/2026,08:30,10:00,Común,280,25
+80,San José,Florida,07/09/2026,16:00,17:30,Directo,330,20
+81,Canelones,Montevideo,08/09/2026,18:00,19:00,Directo,220,25
+82,Montevideo,San José,08/09/2026,07:30,09:00,Común,250,30
+83,Montevideo,San José,08/09/2026,15:00,16:30,Directo,300,20
+84,San José,Montevideo,08/09/2026,10:30,12:00,Común,250,25
+85,San José,Montevideo,08/09/2026,17:00,18:30,Directo,300,20
+86,Florida,Canelones,08/09/2026,09:00,10:30,Común,250,20
+87,Canelones,Florida,08/09/2026,14:00,15:30,Directo,300,15
+88,Florida,San José,08/09/2026,08:30,10:00,Común,280,25
+89,San José,Florida,08/09/2026,16:00,17:30,Directo,330,20
+90,Florida,Montevideo,08/09/2026,08:00,10:00,Directo,350,30
+91,Montevideo,San José,09/09/2026,07:30,09:00,Común,250,30
+92,Montevideo,San José,09/09/2026,15:00,16:30,Directo,300,20
+93,San José,Montevideo,09/09/2026,10:30,12:00,Común,250,25
+94,San José,Montevideo,09/09/2026,17:00,18:30,Directo,300,20
+95,Florida,Canelones,09/09/2026,09:00,10:30,Común,250,20
+96,Canelones,Florida,09/09/2026,14:00,15:30,Directo,300,15
+97,Florida,San José,09/09/2026,08:30,10:00,Común,280,25
+98,San José,Florida,09/09/2026,16:00,17:30,Directo,330,20
+99,Florida,Montevideo,09/09/2026,08:00,10:00,Directo,350,30
+100,Florida,Montevideo,09/09/2026,11:00,13:00,Común,350,20
+101,Montevideo,San José,10/09/2026,15:00,16:30,Directo,300,20
+102,San José,Montevideo,10/09/2026,10:30,12:00,Común,250,25
+103,San José,Montevideo,10/09/2026,17:00,18:30,Directo,300,20
+104,Florida,Canelones,10/09/2026,09:00,10:30,Común,250,20
+105,Canelones,Florida,10/09/2026,14:00,15:30,Directo,300,15
+106,Florida,San José,10/09/2026,08:30,10:00,Común,280,25
+107,San José,Florida,10/09/2026,16:00,17:30,Directo,330,20
+108,Florida,Montevideo,10/09/2026,08:00,10:00,Directo,350,30
+109,Florida,Montevideo,10/09/2026,11:00,13:00,Común,350,20
+110,Florida,Montevideo,10/09/2026,14:15,16:15,Directo,350,20
+111,San José,Montevideo,11/09/2026,10:30,12:00,Común,250,25
+112,San José,Montevideo,11/09/2026,17:00,18:30,Directo,300,20
+113,Florida,Canelones,11/09/2026,09:00,10:30,Común,250,20
+114,Canelones,Florida,11/09/2026,14:00,15:30,Directo,300,15
+115,Florida,San José,11/09/2026,08:30,10:00,Común,280,25
+116,San José,Florida,11/09/2026,16:00,17:30,Directo,330,20
+117,Florida,Montevideo,11/09/2026,08:00,10:00,Directo,350,30
+118,Florida,Montevideo,11/09/2026,11:00,13:00,Común,350,20
+119,Florida,Montevideo,11/09/2026,14:15,16:15,Directo,350,20
+120,Montevideo,Florida,11/09/2026,09:00,11:00,Común,350,25
+121,San José,Montevideo,12/09/2026,17:00,18:30,Directo,300,20
+122,Florida,Canelones,12/09/2026,09:00,10:30,Común,250,20
+123,Canelones,Florida,12/09/2026,14:00,15:30,Directo,300,15
+124,Florida,San José,12/09/2026,08:30,10:00,Común,280,25
+125,San José,Florida,12/09/2026,16:00,17:30,Directo,330,20
+126,Florida,Montevideo,12/09/2026,08:00,10:00,Directo,350,30
+127,Florida,Montevideo,12/09/2026,11:00,13:00,Común,350,20
+128,Florida,Montevideo,12/09/2026,14:15,16:15,Directo,350,20
+129,Montevideo,Florida,12/09/2026,09:00,11:00,Común,350,25
+130,Montevideo,Florida,12/09/2026,17:30,19:30,Directo,400,20
+131,Florida,Canelones,13/09/2026,09:00,10:30,Común,250,20
+132,Canelones,Florida,13/09/2026,14:00,15:30,Directo,300,15
+133,Florida,San José,13/09/2026,08:30,10:00,Común,280,25
+134,San José,Florida,13/09/2026,16:00,17:30,Directo,330,20
+135,Florida,Montevideo,13/09/2026,08:00,10:00,Directo,350,30
+136,Florida,Montevideo,13/09/2026,11:00,13:00,Común,350,20
+137,Florida,Montevideo,13/09/2026,14:15,16:15,Directo,350,20
+138,Montevideo,Florida,13/09/2026,09:00,11:00,Común,350,25
+139,Montevideo,Florida,13/09/2026,17:30,19:30,Directo,400,20
+140,Montevideo,Canelones,13/09/2026,08:30,09:30,Común,180,35
+141,Canelones,Florida,14/09/2026,14:00,15:30,Directo,300,15
+142,Florida,San José,14/09/2026,08:30,10:00,Común,280,25
+143,San José,Florida,14/09/2026,16:00,17:30,Directo,330,20
+144,Florida,Montevideo,14/09/2026,08:00,10:00,Directo,350,30
+145,Florida,Montevideo,14/09/2026,11:00,13:00,Común,350,20
+146,Florida,Montevideo,14/09/2026,14:15,16:15,Directo,350,20
+147,Montevideo,Florida,14/09/2026,09:00,11:00,Común,350,25
+148,Montevideo,Florida,14/09/2026,17:30,19:30,Directo,400,20
+149,Montevideo,Canelones,14/09/2026,08:30,09:30,Común,180,35
+150,Montevideo,Canelones,14/09/2026,13:00,14:00,Directo,220,25
+151,Florida,San José,15/09/2026,08:30,10:00,Común,280,25
+152,San José,Florida,15/09/2026,16:00,17:30,Directo,330,20
+153,Florida,Montevideo,15/09/2026,08:00,10:00,Directo,350,30
+154,Florida,Montevideo,15/09/2026,11:00,13:00,Común,350,20
+155,Florida,Montevideo,15/09/2026,14:15,16:15,Directo,350,20
+156,Montevideo,Florida,15/09/2026,09:00,11:00,Común,350,25
+157,Montevideo,Florida,15/09/2026,17:30,19:30,Directo,400,20
+158,Montevideo,Canelones,15/09/2026,08:30,09:30,Común,180,35
+159,Montevideo,Canelones,15/09/2026,13:00,14:00,Directo,220,25
+160,Canelones,Montevideo,15/09/2026,10:00,11:00,Común,180,30
+161,San José,Florida,16/09/2026,16:00,17:30,Directo,330,20
+162,Florida,Montevideo,16/09/2026,08:00,10:00,Directo,350,30
+163,Florida,Montevideo,16/09/2026,11:00,13:00,Común,350,20
+164,Florida,Montevideo,16/09/2026,14:15,16:15,Directo,350,20
+165,Montevideo,Florida,16/09/2026,09:00,11:00,Común,350,25
+166,Montevideo,Florida,16/09/2026,17:30,19:30,Directo,400,20
+167,Montevideo,Canelones,16/09/2026,08:30,09:30,Común,180,35
+168,Montevideo,Canelones,16/09/2026,13:00,14:00,Directo,220,25
+169,Canelones,Montevideo,16/09/2026,10:00,11:00,Común,180,30
+170,Canelones,Montevideo,16/09/2026,18:00,19:00,Directo,220,25
+171,Florida,Montevideo,17/09/2026,08:00,10:00,Directo,350,30
+172,Florida,Montevideo,17/09/2026,11:00,13:00,Común,350,20
+173,Florida,Montevideo,17/09/2026,14:15,16:15,Directo,350,20
+174,Montevideo,Florida,17/09/2026,09:00,11:00,Común,350,25
+175,Montevideo,Florida,17/09/2026,17:30,19:30,Directo,400,20
+176,Montevideo,Canelones,17/09/2026,08:30,09:30,Común,180,35
+177,Montevideo,Canelones,17/09/2026,13:00,14:00,Directo,220,25
+178,Canelones,Montevideo,17/09/2026,10:00,11:00,Común,180,30
+179,Canelones,Montevideo,17/09/2026,18:00,19:00,Directo,220,25
+180,Montevideo,San José,17/09/2026,07:30,09:00,Común,250,30
+181,Florida,Montevideo,18/09/2026,11:00,13:00,Común,350,20
+182,Florida,Montevideo,18/09/2026,14:15,16:15,Directo,350,20
+183,Montevideo,Florida,18/09/2026,09:00,11:00,Común,350,25
+184,Montevideo,Florida,18/09/2026,17:30,19:30,Directo,400,20
+185,Montevideo,Canelones,18/09/2026,08:30,09:30,Común,180,35
+186,Montevideo,Canelones,18/09/2026,13:00,14:00,Directo,220,25
+187,Canelones,Montevideo,18/09/2026,10:00,11:00,Común,180,30
+188,Canelones,Montevideo,18/09/2026,18:00,19:00,Directo,220,25
+189,Montevideo,San José,18/09/2026,07:30,09:00,Común,250,30
+190,Montevideo,San José,18/09/2026,15:00,16:30,Directo,300,20
+191,Florida,Montevideo,19/09/2026,14:15,16:15,Directo,350,20
+192,Montevideo,Florida,19/09/2026,09:00,11:00,Común,350,25
+193,Montevideo,Florida,19/09/2026,17:30,19:30,Directo,400,20
+194,Montevideo,Canelones,19/09/2026,08:30,09:30,Común,180,35
+195,Montevideo,Canelones,19/09/2026,13:00,14:00,Directo,220,25
+196,Canelones,Montevideo,19/09/2026,10:00,11:00,Común,180,30
+197,Canelones,Montevideo,19/09/2026,18:00,19:00,Directo,220,25
+198,Montevideo,San José,19/09/2026,07:30,09:00,Común,250,30
+199,Montevideo,San José,19/09/2026,15:00,16:30,Directo,300,20
+200,San José,Montevideo,19/09/2026,10:30,12:00,Común,250,25
+201,Montevideo,Florida,20/09/2026,09:00,11:00,Común,350,25
+202,Montevideo,Florida,20/09/2026,17:30,19:30,Directo,400,20
+203,Montevideo,Canelones,20/09/2026,08:30,09:30,Común,180,35
+204,Montevideo,Canelones,20/09/2026,13:00,14:00,Directo,220,25
+205,Canelones,Montevideo,20/09/2026,10:00,11:00,Común,180,30
+206,Canelones,Montevideo,20/09/2026,18:00,19:00,Directo,220,25
+207,Montevideo,San José,20/09/2026,07:30,09:00,Común,250,30
+208,Montevideo,San José,20/09/2026,15:00,16:30,Directo,300,20
+209,San José,Montevideo,20/09/2026,10:30,12:00,Común,250,25
+210,San José,Montevideo,20/09/2026,17:00,18:30,Directo,300,20
+211,Montevideo,Florida,21/09/2026,17:30,19:30,Directo,400,20
+212,Montevideo,Canelones,21/09/2026,08:30,09:30,Común,180,35
+213,Montevideo,Canelones,21/09/2026,13:00,14:00,Directo,220,25
+214,Canelones,Montevideo,21/09/2026,10:00,11:00,Común,180,30
+215,Canelones,Montevideo,21/09/2026,18:00,19:00,Directo,220,25
+216,Montevideo,San José,21/09/2026,07:30,09:00,Común,250,30
+217,Montevideo,San José,21/09/2026,15:00,16:30,Directo,300,20
+218,San José,Montevideo,21/09/2026,10:30,12:00,Común,250,25
+219,San José,Montevideo,21/09/2026,17:00,18:30,Directo,300,20
+220,Florida,Canelones,21/09/2026,09:00,10:30,Común,250,20
+221,Montevideo,Canelones,22/09/2026,08:30,09:30,Común,180,35
+222,Montevideo,Canelones,22/09/2026,13:00,14:00,Directo,220,25
+223,Canelones,Montevideo,22/09/2026,10:00,11:00,Común,180,30
+224,Canelones,Montevideo,22/09/2026,18:00,19:00,Directo,220,25
+225,Montevideo,San José,22/09/2026,07:30,09:00,Común,250,30
+226,Montevideo,San José,22/09/2026,15:00,16:30,Directo,300,20
+227,San José,Montevideo,22/09/2026,10:30,12:00,Común,250,25
+228,San José,Montevideo,22/09/2026,17:00,18:30,Directo,300,20
+229,Florida,Canelones,22/09/2026,09:00,10:30,Común,250,20
+230,Canelones,Florida,22/09/2026,14:00,15:30,Directo,300,15
+231,Montevideo,Canelones,23/09/2026,13:00,14:00,Directo,220,25
+232,Canelones,Montevideo,23/09/2026,10:00,11:00,Común,180,30
+233,Canelones,Montevideo,23/09/2026,18:00,19:00,Directo,220,25
+234,Montevideo,San José,23/09/2026,07:30,09:00,Común,250,30
+235,Montevideo,San José,23/09/2026,15:00,16:30,Directo,300,20
+236,San José,Montevideo,23/09/2026,10:30,12:00,Común,250,25
+237,San José,Montevideo,23/09/2026,17:00,18:30,Directo,300,20
+238,Florida,Canelones,23/09/2026,09:00,10:30,Común,250,20
+239,Canelones,Florida,23/09/2026,14:00,15:30,Directo,300,15
+240,Florida,San José,23/09/2026,08:30,10:00,Común,280,25
+241,Canelones,Montevideo,24/09/2026,10:00,11:00,Común,180,30
+242,Canelones,Montevideo,24/09/2026,18:00,19:00,Directo,220,25
+243,Montevideo,San José,24/09/2026,07:30,09:00,Común,250,30
+244,Montevideo,San José,24/09/2026,15:00,16:30,Directo,300,20
+245,San José,Montevideo,24/09/2026,10:30,12:00,Común,250,25
+246,San José,Montevideo,24/09/2026,17:00,18:30,Directo,300,20
+247,Florida,Canelones,24/09/2026,09:00,10:30,Común,250,20
+248,Canelones,Florida,24/09/2026,14:00,15:30,Directo,300,15
+249,Florida,San José,24/09/2026,08:30,10:00,Común,280,25
+250,San José,Florida,24/09/2026,16:00,17:30,Directo,330,20
+251,Canelones,Montevideo,25/09/2026,18:00,19:00,Directo,220,25
+252,Montevideo,San José,25/09/2026,07:30,09:00,Común,250,30
+253,Montevideo,San José,25/09/2026,15:00,16:30,Directo,300,20
+254,San José,Montevideo,25/09/2026,10:30,12:00,Común,250,25
+255,San José,Montevideo,25/09/2026,17:00,18:30,Directo,300,20
+256,Florida,Canelones,25/09/2026,09:00,10:30,Común,250,20
+257,Canelones,Florida,25/09/2026,14:00,15:30,Directo,300,15
+258,Florida,San José,25/09/2026,08:30,10:00,Común,280,25
+259,San José,Florida,25/09/2026,16:00,17:30,Directo,330,20
+260,Florida,Montevideo,25/09/2026,08:00,10:00,Directo,350,30
+261,Montevideo,San José,26/09/2026,07:30,09:00,Común,250,30
+262,Montevideo,San José,26/09/2026,15:00,16:30,Directo,300,20
+263,San José,Montevideo,26/09/2026,10:30,12:00,Común,250,25
+264,San José,Montevideo,26/09/2026,17:00,18:30,Directo,300,20
+265,Florida,Canelones,26/09/2026,09:00,10:30,Común,250,20
+266,Canelones,Florida,26/09/2026,14:00,15:30,Directo,300,15
+267,Florida,San José,26/09/2026,08:30,10:00,Común,280,25
+268,San José,Florida,26/09/2026,16:00,17:30,Directo,330,20
+269,Florida,Montevideo,26/09/2026,08:00,10:00,Directo,350,30
+270,Florida,Montevideo,26/09/2026,11:00,13:00,Común,350,20
+271,Montevideo,San José,27/09/2026,15:00,16:30,Directo,300,20
+272,San José,Montevideo,27/09/2026,10:30,12:00,Común,250,25
+273,San José,Montevideo,27/09/2026,17:00,18:30,Directo,300,20
+274,Florida,Canelones,27/09/2026,09:00,10:30,Común,250,20
+275,Canelones,Florida,27/09/2026,14:00,15:30,Directo,300,15
+276,Florida,San José,27/09/2026,08:30,10:00,Común,280,25
+277,San José,Florida,27/09/2026,16:00,17:30,Directo,330,20
+278,Florida,Montevideo,27/09/2026,08:00,10:00,Directo,350,30
+279,Florida,Montevideo,27/09/2026,11:00,13:00,Común,350,20
+280,Florida,Montevideo,27/09/2026,14:15,16:15,Directo,350,20
+281,San José,Montevideo,28/09/2026,10:30,12:00,Común,250,25
+282,San José,Montevideo,28/09/2026,17:00,18:30,Directo,300,20
+283,Florida,Canelones,28/09/2026,09:00,10:30,Común,250,20
+284,Canelones,Florida,28/09/2026,14:00,15:30,Directo,300,15
+285,Florida,San José,28/09/2026,08:30,10:00,Común,280,25
+286,San José,Florida,28/09/2026,16:00,17:30,Directo,330,20
+287,Florida,Montevideo,28/09/2026,08:00,10:00,Directo,350,30
+288,Florida,Montevideo,28/09/2026,11:00,13:00,Común,350,20
+289,Florida,Montevideo,28/09/2026,14:15,16:15,Directo,350,20
+290,Montevideo,Florida,28/09/2026,09:00,11:00,Común,350,25
+291,San José,Montevideo,29/09/2026,17:00,18:30,Directo,300,20
+292,Florida,Canelones,29/09/2026,09:00,10:30,Común,250,20
+293,Canelones,Florida,29/09/2026,14:00,15:30,Directo,300,15
+294,Florida,San José,29/09/2026,08:30,10:00,Común,280,25
+295,San José,Florida,29/09/2026,16:00,17:30,Directo,330,20
+296,Florida,Montevideo,29/09/2026,08:00,10:00,Directo,350,30
+297,Florida,Montevideo,29/09/2026,11:00,13:00,Común,350,20
+298,Florida,Montevideo,29/09/2026,14:15,16:15,Directo,350,20
+299,Montevideo,Florida,29/09/2026,09:00,11:00,Común,350,25
+300,Montevideo,Florida,29/09/2026,17:30,19:30,Directo,400,20
+301,Florida,Canelones,30/09/2026,09:00,10:30,Común,250,20
+302,Canelones,Florida,30/09/2026,14:00,15:30,Directo,300,15
+303,Florida,San José,30/09/2026,08:30,10:00,Común,280,25
+304,San José,Florida,30/09/2026,16:00,17:30,Directo,330,20
+305,Florida,Montevideo,30/09/2026,08:00,10:00,Directo,350,30
+306,Florida,Montevideo,30/09/2026,11:00,13:00,Común,350,20
+307,Florida,Montevideo,30/09/2026,14:15,16:15,Directo,350,20
+308,Montevideo,Florida,30/09/2026,09:00,11:00,Común,350,25
+309,Montevideo,Florida,30/09/2026,17:30,19:30,Directo,400,20
+310,Montevideo,Canelones,30/09/2026,08:30,09:30,Común,180,35
+311,Canelones,Florida,01/10/2026,14:00,15:30,Directo,300,15
+312,Florida,San José,01/10/2026,08:30,10:00,Común,280,25
+313,San José,Florida,01/10/2026,16:00,17:30,Directo,330,20
+314,Florida,Montevideo,01/10/2026,08:00,10:00,Directo,350,30
+315,Florida,Montevideo,01/10/2026,11:00,13:00,Común,350,20
+316,Florida,Montevideo,01/10/2026,14:15,16:15,Directo,350,20
+317,Montevideo,Florida,01/10/2026,09:00,11:00,Común,350,25
+318,Montevideo,Florida,01/10/2026,17:30,19:30,Directo,400,20
+319,Montevideo,Canelones,01/10/2026,08:30,09:30,Común,180,35
+320,Montevideo,Canelones,01/10/2026,13:00,14:00,Directo,220,25
+321,Florida,San José,02/10/2026,08:30,10:00,Común,280,25
+322,San José,Florida,02/10/2026,16:00,17:30,Directo,330,20
+323,Florida,Montevideo,02/10/2026,08:00,10:00,Directo,350,30
+324,Florida,Montevideo,02/10/2026,11:00,13:00,Común,350,20
+325,Florida,Montevideo,02/10/2026,14:15,16:15,Directo,350,20
+326,Montevideo,Florida,02/10/2026,09:00,11:00,Común,350,25
+327,Montevideo,Florida,02/10/2026,17:30,19:30,Directo,400,20
+328,Montevideo,Canelones,02/10/2026,08:30,09:30,Común,180,35
+329,Montevideo,Canelones,02/10/2026,13:00,14:00,Directo,220,25
+330,Canelones,Montevideo,02/10/2026,10:00,11:00,Común,180,30
+331,San José,Florida,03/10/2026,16:00,17:30,Directo,330,20
+332,Florida,Montevideo,03/10/2026,08:00,10:00,Directo,350,30
+333,Florida,Montevideo,03/10/2026,11:00,13:00,Común,350,20
+334,Florida,Montevideo,03/10/2026,14:15,16:15,Directo,350,20
+335,Montevideo,Florida,03/10/2026,09:00,11:00,Común,350,25
+336,Montevideo,Florida,03/10/2026,17:30,19:30,Directo,400,20
+337,Montevideo,Canelones,03/10/2026,08:30,09:30,Común,180,35
+338,Montevideo,Canelones,03/10/2026,13:00,14:00,Directo,220,25
+339,Canelones,Montevideo,03/10/2026,10:00,11:00,Común,180,30
+340,Canelones,Montevideo,03/10/2026,18:00,19:00,Directo,220,25
+341,Florida,Montevideo,04/10/2026,08:00,10:00,Directo,350,30
+342,Florida,Montevideo,04/10/2026,11:00,13:00,Común,350,20
+343,Florida,Montevideo,04/10/2026,14:15,16:15,Directo,350,20
+344,Montevideo,Florida,04/10/2026,09:00,11:00,Común,350,25
+345,Montevideo,Florida,04/10/2026,17:30,19:30,Directo,400,20
+346,Montevideo,Canelones,04/10/2026,08:30,09:30,Común,180,35
+347,Montevideo,Canelones,04/10/2026,13:00,14:00,Directo,220,25
+348,Canelones,Montevideo,04/10/2026,10:00,11:00,Común,180,30
+349,Canelones,Montevideo,04/10/2026,18:00,19:00,Directo,220,25
+350,Montevideo,San José,04/10/2026,07:30,09:00,Común,250,30
+351,Florida,Montevideo,05/10/2026,11:00,13:00,Común,350,20
+352,Florida,Montevideo,05/10/2026,14:15,16:15,Directo,350,20
+353,Montevideo,Florida,05/10/2026,09:00,11:00,Común,350,25
+354,Montevideo,Florida,05/10/2026,17:30,19:30,Directo,400,20
+355,Montevideo,Canelones,05/10/2026,08:30,09:30,Común,180,35
+356,Montevideo,Canelones,05/10/2026,13:00,14:00,Directo,220,25
+357,Canelones,Montevideo,05/10/2026,10:00,11:00,Común,180,30
+358,Canelones,Montevideo,05/10/2026,18:00,19:00,Directo,220,25
+359,Montevideo,San José,05/10/2026,07:30,09:00,Común,250,30
+360,Montevideo,San José,05/10/2026,15:00,16:30,Directo,300,20
+361,Florida,Montevideo,06/10/2026,14:15,16:15,Directo,350,20
+362,Montevideo,Florida,06/10/2026,09:00,11:00,Común,350,25
+363,Montevideo,Florida,06/10/2026,17:30,19:30,Directo,400,20
+364,Montevideo,Canelones,06/10/2026,08:30,09:30,Común,180,35
+365,Montevideo,Canelones,06/10/2026,13:00,14:00,Directo,220,25
+366,Canelones,Montevideo,06/10/2026,10:00,11:00,Común,180,30
+367,Canelones,Montevideo,06/10/2026,18:00,19:00,Directo,220,25
+368,Montevideo,San José,06/10/2026,07:30,09:00,Común,250,30
+369,Montevideo,San José,06/10/2026,15:00,16:30,Directo,300,20
+370,San José,Montevideo,06/10/2026,10:30,12:00,Común,250,25
+371,Montevideo,Florida,07/10/2026,09:00,11:00,Común,350,25
+372,Montevideo,Florida,07/10/2026,17:30,19:30,Directo,400,20
+373,Montevideo,Canelones,07/10/2026,08:30,09:30,Común,180,35
+374,Montevideo,Canelones,07/10/2026,13:00,14:00,Directo,220,25
+375,Canelones,Montevideo,07/10/2026,10:00,11:00,Común,180,30
+376,Canelones,Montevideo,07/10/2026,18:00,19:00,Directo,220,25
+377,Montevideo,San José,07/10/2026,07:30,09:00,Común,250,30
+378,Montevideo,San José,07/10/2026,15:00,16:30,Directo,300,20
+379,San José,Montevideo,07/10/2026,10:30,12:00,Común,250,25
+380,San José,Montevideo,07/10/2026,17:00,18:30,Directo,300,20
+381,Montevideo,Florida,08/10/2026,17:30,19:30,Directo,400,20
+382,Montevideo,Canelones,08/10/2026,08:30,09:30,Común,180,35
+383,Montevideo,Canelones,08/10/2026,13:00,14:00,Directo,220,25
+384,Canelones,Montevideo,08/10/2026,10:00,11:00,Común,180,30
+385,Canelones,Montevideo,08/10/2026,18:00,19:00,Directo,220,25
+386,Montevideo,San José,08/10/2026,07:30,09:00,Común,250,30
+387,Montevideo,San José,08/10/2026,15:00,16:30,Directo,300,20
+388,San José,Montevideo,08/10/2026,10:30,12:00,Común,250,25
+389,San José,Montevideo,08/10/2026,17:00,18:30,Directo,300,20
+390,Florida,Canelones,08/10/2026,09:00,10:30,Común,250,20
+391,Montevideo,Canelones,09/10/2026,08:30,09:30,Común,180,35
+392,Montevideo,Canelones,09/10/2026,13:00,14:00,Directo,220,25
+393,Canelones,Montevideo,09/10/2026,10:00,11:00,Común,180,30
+394,Canelones,Montevideo,09/10/2026,18:00,19:00,Directo,220,25
+395,Montevideo,San José,09/10/2026,07:30,09:00,Común,250,30
+396,Montevideo,San José,09/10/2026,15:00,16:30,Directo,300,20
+397,San José,Montevideo,09/10/2026,10:30,12:00,Común,250,25
+398,San José,Montevideo,09/10/2026,17:00,18:30,Directo,300,20
+399,Florida,Canelones,09/10/2026,09:00,10:30,Común,250,20
+400,Canelones,Florida,09/10/2026,14:00,15:30,Directo,300,15
+401,Montevideo,Canelones,10/10/2026,13:00,14:00,Directo,220,25
+402,Canelones,Montevideo,10/10/2026,10:00,11:00,Común,180,30
+403,Canelones,Montevideo,10/10/2026,18:00,19:00,Directo,220,25
+404,Montevideo,San José,10/10/2026,07:30,09:00,Común,250,30
+405,Montevideo,San José,10/10/2026,15:00,16:30,Directo,300,20
+406,San José,Montevideo,10/10/2026,10:30,12:00,Común,250,25
+407,San José,Montevideo,10/10/2026,17:00,18:30,Directo,300,20
+408,Florida,Canelones,10/10/2026,09:00,10:30,Común,250,20
+409,Canelones,Florida,10/10/2026,14:00,15:30,Directo,300,15
+410,Florida,San José,10/10/2026,08:30,10:00,Común,280,25
+411,Canelones,Montevideo,11/10/2026,10:00,11:00,Común,180,30
+412,Canelones,Montevideo,11/10/2026,18:00,19:00,Directo,220,25
+413,Montevideo,San José,11/10/2026,07:30,09:00,Común,250,30
+414,Montevideo,San José,11/10/2026,15:00,16:30,Directo,300,20
+415,San José,Montevideo,11/10/2026,10:30,12:00,Común,250,25
+416,San José,Montevideo,11/10/2026,17:00,18:30,Directo,300,20
+417,Florida,Canelones,11/10/2026,09:00,10:30,Común,250,20
+418,Canelones,Florida,11/10/2026,14:00,15:30,Directo,300,15
+419,Florida,San José,11/10/2026,08:30,10:00,Común,280,25
+420,San José,Florida,11/10/2026,16:00,17:30,Directo,330,20
+421,Canelones,Montevideo,12/10/2026,18:00,19:00,Directo,220,25
+422,Montevideo,San José,12/10/2026,07:30,09:00,Común,250,30
+423,Montevideo,San José,12/10/2026,15:00,16:30,Directo,300,20
+424,San José,Montevideo,12/10/2026,10:30,12:00,Común,250,25
+425,San José,Montevideo,12/10/2026,17:00,18:30,Directo,300,20
+426,Florida,Canelones,12/10/2026,09:00,10:30,Común,250,20
+427,Canelones,Florida,12/10/2026,14:00,15:30,Directo,300,15
+428,Florida,San José,12/10/2026,08:30,10:00,Común,280,25
+429,San José,Florida,12/10/2026,16:00,17:30,Directo,330,20
+430,Florida,Montevideo,12/10/2026,08:00,10:00,Directo,350,30
+431,Montevideo,San José,13/10/2026,07:30,09:00,Común,250,30
+432,Montevideo,San José,13/10/2026,15:00,16:30,Directo,300,20
+433,San José,Montevideo,13/10/2026,10:30,12:00,Común,250,25
+434,San José,Montevideo,13/10/2026,17:00,18:30,Directo,300,20
+435,Florida,Canelones,13/10/2026,09:00,10:30,Común,250,20
+436,Canelones,Florida,13/10/2026,14:00,15:30,Directo,300,15
+437,Florida,San José,13/10/2026,08:30,10:00,Común,280,25
+438,San José,Florida,13/10/2026,16:00,17:30,Directo,330,20
+439,Florida,Montevideo,13/10/2026,08:00,10:00,Directo,350,30
+440,Florida,Montevideo,13/10/2026,11:00,13:00,Común,350,20
+441,Montevideo,San José,14/10/2026,15:00,16:30,Directo,300,20
+442,San José,Montevideo,14/10/2026,10:30,12:00,Común,250,25
+443,San José,Montevideo,14/10/2026,17:00,18:30,Directo,300,20
+444,Florida,Canelones,14/10/2026,09:00,10:30,Común,250,20
+445,Canelones,Florida,14/10/2026,14:00,15:30,Directo,300,15
+446,Florida,San José,14/10/2026,08:30,10:00,Común,280,25
+447,San José,Florida,14/10/2026,16:00,17:30,Directo,330,20
+448,Florida,Montevideo,14/10/2026,08:00,10:00,Directo,350,30
+449,Florida,Montevideo,14/10/2026,11:00,13:00,Común,350,20
+450,Florida,Montevideo,14/10/2026,14:15,16:15,Directo,350,20
+451,San José,Montevideo,15/10/2026,10:30,12:00,Común,250,25
+452,San José,Montevideo,15/10/2026,17:00,18:30,Directo,300,20
+453,Florida,Canelones,15/10/2026,09:00,10:30,Común,250,20
+454,Canelones,Florida,15/10/2026,14:00,15:30,Directo,300,15
+455,Florida,San José,15/10/2026,08:30,10:00,Común,280,25
+456,San José,Florida,15/10/2026,16:00,17:30,Directo,330,20
+457,Florida,Montevideo,15/10/2026,08:00,10:00,Directo,350,30
+458,Florida,Montevideo,15/10/2026,11:00,13:00,Común,350,20
+459,Florida,Montevideo,15/10/2026,14:15,16:15,Directo,350,20
+460,Montevideo,Florida,15/10/2026,09:00,11:00,Común,350,25

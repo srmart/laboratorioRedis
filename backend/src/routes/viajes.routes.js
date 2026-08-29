@@ -1,63 +1,392 @@
 import { Router } from "express";
+
 import redisClient from "../redis.js";
+
+import { leerViajesCSV } from "../data/viajes.js";
 
 const router = Router();
 
+
+// ==========================================================
+// GET /viajes
+// ==========================================================
+
 router.get("/", async (req, res) => {
+
   const { origen, destino, fecha } = req.query;
 
-  console.log("QUERY:", JSON.stringify({ origen, destino, fecha }));
+  if (!origen || !destino || !fecha) {
 
-  const cacheKey = `cache:viajes:${origen}:${destino}:${fecha}`;
+    return res.status(400).json({
 
-  const cachedViajes = await redisClient.get(cacheKey);
+      error: "Origen, destino y fecha son obligatorios",
 
-  if (cachedViajes) {
-    await redisClient.incr("cache:hits");
+    });
 
-    return res.json(JSON.parse(cachedViajes));
   }
 
-  await redisClient.incr("cache:misses");
+  try {
 
-  const keys = await redisClient.keys("viaje:*");
+    const cacheKey = "cache:catalogo";
 
-  console.log("REDIS PING:", await redisClient.ping());
-  console.log("VIAJE 1:", JSON.stringify(await redisClient.hGetAll("viaje:1")));
+    const cachedCatalogo =
+      await redisClient.get(cacheKey);
 
-  console.log("KEYS ENCONTRADAS:", keys.length, JSON.stringify(keys));
+    let catalogo;
 
-  const viajeKeys = keys.filter((key) => !key.endsWith(":asientos"));
 
-  console.log(
-    "VIAJE KEYS (sin asientos):",
-    viajeKeys.length,
-    JSON.stringify(viajeKeys),
-  );
+    // ======================================================
+    // El catálogo ya está en Redis
+    // ======================================================
 
-  const viajes = [];
+    if (cachedCatalogo !== null) {
 
-  for (const key of viajeKeys) {
-    const viaje = await redisClient.hGetAll(key);
+      console.log(
+        "BUSQUEDA: usando catálogo desde Redis"
+      );
 
-    console.log("COMPARANDO:", key, JSON.stringify(viaje));
+      catalogo = JSON.parse(cachedCatalogo);
 
-    console.log("FILTROS:", JSON.stringify({ origen, destino, fecha }));
-
-    if (
-      viaje.origen === origen &&
-      viaje.destino === destino &&
-      viaje.fecha === fecha
-    ) {
-      console.log("COINCIDE:", key);
-
-      viajes.push(viaje);
     }
+
+
+    // ======================================================
+    // El catálogo todavía NO está en Redis
+    // ======================================================
+
+    else {
+
+      console.log(
+        "BUSQUEDA: catálogo no está en Redis, leyendo CSV"
+      );
+
+      catalogo = await leerViajesCSV();
+
+    }
+
+
+    // ======================================================
+    // Filtrar resultados
+    // ======================================================
+
+    const viajes = catalogo.filter(
+
+      (viaje) =>
+        viaje.origen === origen &&
+        viaje.destino === destino &&
+        viaje.fecha === fecha
+
+    );
+
+
+    return res.json(viajes);
+
+  } catch (error) {
+
+    console.error(
+      "Error buscando viajes:",
+      error
+    );
+
+    return res.status(500).json({
+
+      error: "Error obteniendo los viajes",
+
+    });
+
   }
 
-  await redisClient.set(cacheKey, JSON.stringify(viajes));
-
-  res.json(viajes);
 });
+
+
+// ==========================================================
+// GET /viajes/catalogo
+// ==========================================================
+
+
+router.get("/catalogo", async (req, res) => {
+
+  try {
+
+    const cacheKey = "cache:catalogo";
+
+
+    // ======================================================
+    // CACHE HIT
+    // ======================================================
+
+    const cachedCatalogo =
+      await redisClient.get(cacheKey);
+
+    if (cachedCatalogo !== null) {
+
+      const cacheHits =
+        await redisClient.incr("cache:hits");
+
+      const cacheMisses =
+        Number(
+          await redisClient.get("cache:misses")
+        ) || 0;
+
+      console.log(
+        "CACHE HIT:",
+        cacheKey
+      );
+
+      return res.json({
+
+        catalogo: JSON.parse(cachedCatalogo),
+
+        cacheStatus: "HIT",
+
+        cacheHits,
+
+        cacheMisses,
+
+      });
+
+    }
+
+
+    // ======================================================
+    // CACHE MISS
+    // ======================================================
+
+    const cacheMisses =
+      await redisClient.incr("cache:misses");
+
+    console.log(
+      "CACHE MISS:",
+      cacheKey
+    );
+
+
+    // ======================================================
+    // LEER CSV
+    // ======================================================
+
+    const catalogo =
+      await leerViajesCSV();
+
+
+    // ======================================================
+    // GUARDAR CATÁLOGO EN REDIS (3 min)
+    // ======================================================
+
+    await redisClient.set(
+      cacheKey,
+      JSON.stringify(catalogo),
+      {
+        EX: 180
+      }
+    );
+
+
+    // ======================================================
+    // PREPARAR LOS VIAJES EN REDIS
+    // ======================================================
+   
+
+    for (const viaje of catalogo) {
+
+      const viajeKey =
+        `viaje:${viaje.id}`;
+
+      const capacidadKey =
+        `viaje:${viaje.id}:capacidad`;
+
+
+      // solo creamos el viaje si todavía no existe.
+
+
+      const existeViaje =
+        await redisClient.exists(viajeKey);
+
+      if (!existeViaje) {
+
+        await redisClient.hSet(viajeKey, {
+
+          origen: viaje.origen,
+
+          destino: viaje.destino,
+
+          fecha: viaje.fecha,
+
+          horaSalida: viaje.horaSalida,
+
+          horaLlegada: viaje.horaLlegada,
+
+          tipoBus: viaje.tipoBus,
+
+          precio: String(viaje.precio),
+
+        });
+
+      }
+
+
+      const existeCapacidad =
+        await redisClient.exists(capacidadKey);
+
+      if (!existeCapacidad) {
+
+        await redisClient.set(
+
+          capacidadKey,
+
+          viaje.capacidad
+
+        );
+
+      }
+
+    }
+
+
+    // ======================================================
+    // MÉTRICAS
+    // ======================================================
+
+    const cacheHits =
+      Number(
+        await redisClient.get("cache:hits")
+      ) || 0;
+
+
+    return res.json({
+
+      catalogo,
+
+      cacheStatus: "MISS",
+
+      cacheHits,
+
+      cacheMisses,
+
+    });
+
+  } catch (error) {
+
+    console.error(
+      "ERROR OBTENIENDO CATÁLOGO:",
+      error
+    );
+
+    return res.status(500).json({
+
+      error: "Error obteniendo el catálogo",
+
+    });
+
+  }
+
+});
+
+
+// ==========================================================
+// GET /viajes/:id/asientos
+// ==========================================================
+
+router.get("/:id/asientos", async (req, res) => {
+
+  const viajeId = req.params.id;
+
+  try {
+
+    const capacidad =
+      await redisClient.get(
+        `viaje:${viajeId}:capacidad`
+      );
+
+
+    if (capacidad === null) {
+
+      return res.status(404).json({
+
+        error: "El viaje no existe",
+
+      });
+
+    }
+
+
+    const capacidadNumerica =
+      Number(capacidad);
+
+
+    const asientos = [];
+
+
+    for (
+      let numero = 1;
+      numero <= capacidadNumerica;
+      numero++
+    ) {
+
+      const key =
+        `viaje:${viajeId}:asiento:${numero}`;
+
+
+      const estado =
+        await redisClient.get(key);
+
+
+      let estadoAsiento =
+        "disponible";
+
+
+      if (estado === "vendido") {
+
+        estadoAsiento =
+          "vendido";
+
+      }
+
+      else if (estado !== null) {
+
+        estadoAsiento =
+          "bloqueado";
+
+      }
+
+
+      asientos.push({
+
+        numero,
+
+        estado: estadoAsiento,
+
+      });
+
+    }
+
+
+    return res.json({
+
+      viajeId,
+
+      capacidad: capacidadNumerica,
+
+      asientos,
+
+    });
+
+  } catch (error) {
+
+    console.error(
+      "Error obteniendo asientos:",
+      error
+    );
+
+    return res.status(500).json({
+
+      error: "Error obteniendo los asientos",
+
+    });
+
+  }
+
+});
+
 
 export default router;

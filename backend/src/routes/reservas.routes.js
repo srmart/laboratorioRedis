@@ -6,7 +6,6 @@ const router = Router();
 
 const TIEMPO_RESERVA = 60;
 
-
 /*
  * ==========================================================
  * GET /reservas
@@ -26,31 +25,29 @@ router.get("/", async (req, res) => {
 
       const reserva = await redisClient.hGetAll(key);
 
-if (Object.keys(reserva).length === 0) {
-  continue;
-}
+      if (Object.keys(reserva).length === 0) {
+        continue;
+      }
 
-const viaje = await redisClient.hGetAll(
-  `viaje:${reserva.viajeId}`
-);
+      const viaje = await redisClient.hGetAll(`viaje:${reserva.viajeId}`);
 
-if (Object.keys(viaje).length > 0) {
-  if (viaje.precio !== undefined) {
-    viaje.precio = Number(viaje.precio);
-  }
+      if (Object.keys(viaje).length > 0) {
+        if (viaje.precio !== undefined) {
+          viaje.precio = Number(viaje.precio);
+        }
 
-  reservas.push({
-    ...reserva,
-    origen: viaje.origen,
-    destino: viaje.destino,
-    fecha: viaje.fecha,
-    horaSalida: viaje.horaSalida,
-    horaLlegada: viaje.horaLlegada,
-    precio: viaje.precio,
-  });
-} else {
-  reservas.push(reserva);
-}
+        reservas.push({
+          ...reserva,
+          origen: viaje.origen,
+          destino: viaje.destino,
+          fecha: viaje.fecha,
+          horaSalida: viaje.horaSalida,
+          horaLlegada: viaje.horaLlegada,
+          precio: viaje.precio,
+        });
+      } else {
+        reservas.push(reserva);
+      }
     }
 
     reservas.sort((a, b) => Number(a.id) - Number(b.id));
@@ -65,6 +62,32 @@ if (Object.keys(viaje).length > 0) {
   }
 });
 
+router.get("/ranking-destinos", async (req, res) => {
+  try {
+    const ranking = await redisClient.zRangeWithScores(
+      "ranking:destinos",
+      0,
+      -1,
+      {
+        REV: true,
+      },
+    );
+
+    return res.json(
+      ranking.map((item, index) => ({
+        posicion: index + 1,
+        destino: item.value,
+        reservas: item.score,
+      })),
+    );
+  } catch (error) {
+    console.error("Error obteniendo ranking:", error);
+
+    return res.status(500).json({
+      error: "Error obteniendo el ranking de destinos",
+    });
+  }
+});
 
 /*
  * ==========================================================
@@ -100,7 +123,6 @@ router.get("/:id", async (req, res) => {
     });
   }
 });
-
 
 /*
  * ==========================================================
@@ -141,9 +163,7 @@ router.post("/", async (req, res) => {
     /*
      * Verificar que el viaje exista.
      */
-    const capacidad = await redisClient.get(
-      `viaje:${viajeId}:capacidad`
-    );
+    const capacidad = await redisClient.get(`viaje:${viajeId}:capacidad`);
 
     if (capacidad === null) {
       return res.status(404).json({
@@ -160,7 +180,7 @@ router.post("/", async (req, res) => {
       (asiento) =>
         Number.isInteger(asiento) &&
         asiento >= 1 &&
-        asiento <= capacidadNumerica
+        asiento <= capacidadNumerica,
     );
 
     if (!asientosValidos) {
@@ -173,8 +193,7 @@ router.post("/", async (req, res) => {
      * Crear las claves de los asientos.
      */
     const clavesAsientos = asientosUnicos.map(
-      (asiento) =>
-        `viaje:${viajeId}:asiento:${asiento}`
+      (asiento) => `viaje:${viajeId}:asiento:${asiento}`,
     );
 
     /*
@@ -190,14 +209,10 @@ router.post("/", async (req, res) => {
        * Verificar que todos los asientos siguen libres.
        */
       const estados = await Promise.all(
-        clavesAsientos.map(
-          (key) => redisClient.get(key)
-        )
+        clavesAsientos.map((key) => redisClient.get(key)),
       );
 
-      const asientoOcupado = estados.some(
-        (estado) => estado !== null
-      );
+      const asientoOcupado = estados.some((estado) => estado !== null);
 
       if (asientoOcupado) {
         await redisClient.unwatch();
@@ -210,9 +225,7 @@ router.post("/", async (req, res) => {
       /*
        * Generar ID de reserva.
        */
-      const reservaId = await redisClient.incr(
-        "reserva:id"
-      );
+      const reservaId = await redisClient.incr("reserva:id");
 
       const reservaKey = `reserva:${reservaId}`;
 
@@ -230,19 +243,12 @@ router.post("/", async (req, res) => {
         estado: "pendiente",
       });
 
-      transaction.expire(
-        reservaKey,
-        TIEMPO_RESERVA
-      );
+      transaction.expire(reservaKey, TIEMPO_RESERVA);
 
       for (const asiento of asientosUnicos) {
-        transaction.set(
-          `viaje:${viajeId}:asiento:${asiento}`,
-          reservaKey,
-          {
-            EX: TIEMPO_RESERVA,
-          }
-        );
+        transaction.set(`viaje:${viajeId}:asiento:${asiento}`, reservaKey, {
+          EX: TIEMPO_RESERVA,
+        });
       }
 
       const resultado = await transaction.exec();
@@ -278,7 +284,6 @@ router.post("/", async (req, res) => {
   }
 });
 
-
 /*
  * ==========================================================
  * POST /reservas/:id/finalizar
@@ -292,9 +297,7 @@ router.post("/:id/finalizar", async (req, res) => {
   const reservaKey = `reserva:${reservaId}`;
 
   try {
-    const reserva = await redisClient.hGetAll(
-      reservaKey
-    );
+    const reserva = await redisClient.hGetAll(reservaKey);
 
     if (Object.keys(reserva).length === 0) {
       return res.status(404).json({
@@ -317,9 +320,7 @@ router.post("/:id/finalizar", async (req, res) => {
     await redisClient.watch(reservaKey);
 
     try {
-      const reservaActual = await redisClient.hGetAll(
-        reservaKey
-      );
+      const reservaActual = await redisClient.hGetAll(reservaKey);
 
       if (Object.keys(reservaActual).length === 0) {
         await redisClient.unwatch();
@@ -343,10 +344,7 @@ router.post("/:id/finalizar", async (req, res) => {
         estado: "en_cola",
       });
 
-      transaction.rPush(
-        "cola:reservas",
-        reservaId.toString()
-      );
+      transaction.rPush("cola:reservas", reservaId.toString());
 
       const resultado = await transaction.exec();
 
@@ -376,7 +374,6 @@ router.post("/:id/finalizar", async (req, res) => {
   }
 });
 
-
 /*
  * ==========================================================
  * POST /reservas/procesar
@@ -390,9 +387,7 @@ router.post("/procesar", async (_req, res) => {
       /*
        * LPOP obtiene la primera reserva de la cola.
        */
-      const reservaId = await redisClient.lPop(
-        "cola:reservas"
-      );
+      const reservaId = await redisClient.lPop("cola:reservas");
 
       if (!reservaId) {
         return res.status(404).json({
@@ -402,18 +397,14 @@ router.post("/procesar", async (_req, res) => {
 
       const reservaKey = `reserva:${reservaId}`;
 
-      const reserva = await redisClient.hGetAll(
-        reservaKey
-      );
+      const reserva = await redisClient.hGetAll(reservaKey);
 
       /*
        * Si expiró antes de ser procesada,
        * simplemente seguimos con la siguiente.
        */
       if (Object.keys(reserva).length === 0) {
-        console.log(
-          `Reserva ${reservaId} expirada. Se elimina de la cola.`
-        );
+        console.log(`Reserva ${reservaId} expirada. Se elimina de la cola.`);
 
         continue;
       }
@@ -436,13 +427,10 @@ router.post("/procesar", async (_req, res) => {
 
       transaction.persist(reservaKey);
 
-      const asientos = JSON.parse(
-        reserva.asientos
-      );
+      const asientos = JSON.parse(reserva.asientos);
 
       for (const asiento of asientos) {
-        const asientoKey =
-          `viaje:${reserva.viajeId}:asiento:${asiento}`;
+        const asientoKey = `viaje:${reserva.viajeId}:asiento:${asiento}`;
 
         transaction.persist(asientoKey);
       }
@@ -472,7 +460,6 @@ router.post("/procesar", async (_req, res) => {
   }
 });
 
-
 /*
  * ==========================================================
  * POST /reservas/resolver
@@ -501,10 +488,7 @@ router.post("/resolver", async (_req, res) => {
 
       const reserva = await redisClient.hGetAll(key);
 
-      if (
-        Object.keys(reserva).length > 0 &&
-        reserva.estado === "procesando"
-      ) {
+      if (Object.keys(reserva).length > 0 && reserva.estado === "procesando") {
         reservasProcesando.push(reserva);
       }
     }
@@ -515,22 +499,19 @@ router.post("/resolver", async (_req, res) => {
       });
     }
 
-    reservasProcesando.sort(
-      (a, b) => Number(a.id) - Number(b.id)
-    );
+    reservasProcesando.sort((a, b) => Number(a.id) - Number(b.id));
 
     const reserva = reservasProcesando[0];
 
     const reservaId = reserva.id;
     const reservaKey = `reserva:${reservaId}`;
 
-    const asientos = JSON.parse(
-      reserva.asientos
-    );
+    const viaje = await redisClient.hGetAll(`viaje:${reserva.viajeId}`);
+
+    const asientos = JSON.parse(reserva.asientos);
 
     const clavesAsientos = asientos.map(
-      (asiento) =>
-        `viaje:${reserva.viajeId}:asiento:${asiento}`
+      (asiento) => `viaje:${reserva.viajeId}:asiento:${asiento}`,
     );
 
     /*
@@ -538,14 +519,10 @@ router.post("/resolver", async (_req, res) => {
      *
      * Vigilamos la reserva y sus asientos.
      */
-    await redisClient.watch(
-      reservaKey,
-      ...clavesAsientos
-    );
+    await redisClient.watch(reservaKey, ...clavesAsientos);
 
     try {
-      const reservaActual =
-        await redisClient.hGetAll(reservaKey);
+      const reservaActual = await redisClient.hGetAll(reservaKey);
 
       if (Object.keys(reservaActual).length === 0) {
         await redisClient.unwatch();
@@ -568,22 +545,18 @@ router.post("/resolver", async (_req, res) => {
        * a esta reserva.
        */
       const propietarios = await Promise.all(
-        clavesAsientos.map(
-          (key) => redisClient.get(key)
-        )
+        clavesAsientos.map((key) => redisClient.get(key)),
       );
 
-      const todosPertenecenALaReserva =
-        propietarios.every(
-          (propietario) => propietario === reservaKey
-        );
+      const todosPertenecenALaReserva = propietarios.every(
+        (propietario) => propietario === reservaKey,
+      );
 
       if (!todosPertenecenALaReserva) {
         await redisClient.unwatch();
 
         return res.status(409).json({
-          error:
-            "Uno o más asientos ya no pertenecen a esta reserva",
+          error: "Uno o más asientos ya no pertenecen a esta reserva",
         });
       }
 
@@ -597,14 +570,12 @@ router.post("/resolver", async (_req, res) => {
         estado: "resuelta",
       });
 
-      for (const asiento of asientos) {
-        const asientoKey =
-          `viaje:${reservaActual.viajeId}:asiento:${asiento}`;
+      transaction.zIncrBy("ranking:destinos", 1, viaje.destino);
 
-        transaction.set(
-          asientoKey,
-          "vendido"
-        );
+      for (const asiento of asientos) {
+        const asientoKey = `viaje:${reservaActual.viajeId}:asiento:${asiento}`;
+
+        transaction.set(asientoKey, "vendido");
 
         transaction.persist(asientoKey);
       }
@@ -615,8 +586,7 @@ router.post("/resolver", async (_req, res) => {
 
       if (resultado === null) {
         return res.status(409).json({
-          error:
-            "La reserva fue modificada por otra operación",
+          error: "La reserva fue modificada por otra operación",
         });
       }
 
@@ -640,7 +610,6 @@ router.post("/resolver", async (_req, res) => {
   }
 });
 
-
 /*
  * ==========================================================
  * POST /reservas/:id/confirmar
@@ -655,9 +624,7 @@ router.post("/:id/confirmar", async (req, res) => {
   const reservaKey = `reserva:${reservaId}`;
 
   try {
-    const reserva = await redisClient.hGetAll(
-      reservaKey
-    );
+    const reserva = await redisClient.hGetAll(reservaKey);
 
     if (Object.keys(reserva).length === 0) {
       return res.status(404).json({
@@ -671,23 +638,16 @@ router.post("/:id/confirmar", async (req, res) => {
       });
     }
 
-    const asientos = JSON.parse(
-      reserva.asientos
-    );
+    const asientos = JSON.parse(reserva.asientos);
 
     const clavesAsientos = asientos.map(
-      (asiento) =>
-        `viaje:${reserva.viajeId}:asiento:${asiento}`
+      (asiento) => `viaje:${reserva.viajeId}:asiento:${asiento}`,
     );
 
-    await redisClient.watch(
-      reservaKey,
-      ...clavesAsientos
-    );
+    await redisClient.watch(reservaKey, ...clavesAsientos);
 
     try {
-      const reservaActual =
-        await redisClient.hGetAll(reservaKey);
+      const reservaActual = await redisClient.hGetAll(reservaKey);
 
       if (Object.keys(reservaActual).length === 0) {
         await redisClient.unwatch();
@@ -706,22 +666,18 @@ router.post("/:id/confirmar", async (req, res) => {
       }
 
       const propietarios = await Promise.all(
-        clavesAsientos.map(
-          (key) => redisClient.get(key)
-        )
+        clavesAsientos.map((key) => redisClient.get(key)),
       );
 
-      const todosPertenecenALaReserva =
-        propietarios.every(
-          (propietario) => propietario === reservaKey
-        );
+      const todosPertenecenALaReserva = propietarios.every(
+        (propietario) => propietario === reservaKey,
+      );
 
       if (!todosPertenecenALaReserva) {
         await redisClient.unwatch();
 
         return res.status(409).json({
-          error:
-            "Uno o más asientos ya no pertenecen a esta reserva",
+          error: "Uno o más asientos ya no pertenecen a esta reserva",
         });
       }
 
@@ -732,13 +688,9 @@ router.post("/:id/confirmar", async (req, res) => {
       });
 
       for (const asiento of asientos) {
-        const asientoKey =
-          `viaje:${reservaActual.viajeId}:asiento:${asiento}`;
+        const asientoKey = `viaje:${reservaActual.viajeId}:asiento:${asiento}`;
 
-        transaction.set(
-          asientoKey,
-          "vendido"
-        );
+        transaction.set(asientoKey, "vendido");
 
         transaction.persist(asientoKey);
       }
@@ -749,8 +701,7 @@ router.post("/:id/confirmar", async (req, res) => {
 
       if (resultado === null) {
         return res.status(409).json({
-          error:
-            "La reserva fue modificada por otra operación",
+          error: "La reserva fue modificada por otra operación",
         });
       }
 
@@ -774,7 +725,6 @@ router.post("/:id/confirmar", async (req, res) => {
   }
 });
 
-
 /*
  * ==========================================================
  * DELETE /reservas/:id
@@ -787,9 +737,7 @@ router.delete("/:id", async (req, res) => {
   const reservaKey = `reserva:${reservaId}`;
 
   try {
-    const reserva = await redisClient.hGetAll(
-      reservaKey
-    );
+    const reserva = await redisClient.hGetAll(reservaKey);
 
     if (Object.keys(reserva).length === 0) {
       return res.status(404).json({
@@ -803,27 +751,20 @@ router.delete("/:id", async (req, res) => {
       });
     }
 
-    const asientos = JSON.parse(
-      reserva.asientos
-    );
+    const asientos = JSON.parse(reserva.asientos);
 
     const clavesAsientos = asientos.map(
-      (asiento) =>
-        `viaje:${reserva.viajeId}:asiento:${asiento}`
+      (asiento) => `viaje:${reserva.viajeId}:asiento:${asiento}`,
     );
 
     /*
      * WATCH para evitar cancelar una reserva
      * que haya sido modificada simultáneamente.
      */
-    await redisClient.watch(
-      reservaKey,
-      ...clavesAsientos
-    );
+    await redisClient.watch(reservaKey, ...clavesAsientos);
 
     try {
-      const reservaActual =
-        await redisClient.hGetAll(reservaKey);
+      const reservaActual = await redisClient.hGetAll(reservaKey);
 
       if (Object.keys(reservaActual).length === 0) {
         await redisClient.unwatch();
@@ -846,17 +787,14 @@ router.delete("/:id", async (req, res) => {
       transaction.del(reservaKey);
 
       for (const asiento of asientos) {
-        transaction.del(
-          `viaje:${reservaActual.viajeId}:asiento:${asiento}`
-        );
+        transaction.del(`viaje:${reservaActual.viajeId}:asiento:${asiento}`);
       }
 
       const resultado = await transaction.exec();
 
       if (resultado === null) {
         return res.status(409).json({
-          error:
-            "La reserva fue modificada por otra operación",
+          error: "La reserva fue modificada por otra operación",
         });
       }
 
@@ -876,6 +814,5 @@ router.delete("/:id", async (req, res) => {
     });
   }
 });
-
 
 export default router;

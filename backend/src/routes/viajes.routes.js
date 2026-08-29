@@ -6,7 +6,6 @@ import { leerViajesCSV } from "../data/viajes.js";
 
 const router = Router();
 
-
 // ==========================================================
 // GET /viajes
 // ==========================================================
@@ -27,22 +26,16 @@ router.get("/", async (req, res) => {
 
     const cacheKey = "cache:catalogo";
 
-    const cachedCatalogo =
-      await redisClient.get(cacheKey);
+    const cachedCatalogo = await redisClient.get(cacheKey);
 
     let catalogo;
 
     if (cachedCatalogo !== null) {
-      console.log(
-        "BUSQUEDA: usando catálogo desde Redis"
-      );
+      console.log("BUSQUEDA: usando catálogo desde Redis");
 
       catalogo = JSON.parse(cachedCatalogo);
-
     } else {
-      console.log(
-        "BUSQUEDA: catálogo no está en cache, leyendo CSV"
-      );
+      console.log("BUSQUEDA: catálogo no está en cache, leyendo CSV");
 
       catalogo = await leerViajesCSV();
     }
@@ -55,8 +48,7 @@ router.get("/", async (req, res) => {
       const viajeKey = `viaje:${viaje.id}`;
       const capacidadKey = `viaje:${viaje.id}:capacidad`;
 
-      const existeViaje =
-        await redisClient.exists(viajeKey);
+      const existeViaje = await redisClient.exists(viajeKey);
 
       if (!existeViaje) {
         await redisClient.hSet(viajeKey, {
@@ -70,14 +62,10 @@ router.get("/", async (req, res) => {
         });
       }
 
-      const existeCapacidad =
-        await redisClient.exists(capacidadKey);
+      const existeCapacidad = await redisClient.exists(capacidadKey);
 
       if (!existeCapacidad) {
-        await redisClient.set(
-          capacidadKey,
-          viaje.capacidad
-        );
+        await redisClient.set(capacidadKey, viaje.capacidad);
       }
     }
 
@@ -89,16 +77,12 @@ router.get("/", async (req, res) => {
       (viaje) =>
         viaje.origen === origen &&
         viaje.destino === destino &&
-        viaje.fecha === fecha
+        viaje.fecha === fecha,
     );
 
     return res.json(viajes);
-
   } catch (error) {
-    console.error(
-      "Error buscando viajes:",
-      error
-    );
+    console.error("Error buscando viajes:", error);
 
     return res.status(500).json({
       error: "Error obteniendo los viajes",
@@ -106,43 +90,28 @@ router.get("/", async (req, res) => {
   }
 });
 
-
 // ==========================================================
 // GET /viajes/catalogo
 // ==========================================================
 
-
 router.get("/catalogo", async (req, res) => {
-
   try {
-
     const cacheKey = "cache:catalogo";
-
 
     // ======================================================
     // CACHE HIT
     // ======================================================
 
-    const cachedCatalogo =
-      await redisClient.get(cacheKey);
+    const cachedCatalogo = await redisClient.get(cacheKey);
 
     if (cachedCatalogo !== null) {
+      const cacheHits = await redisClient.incr("cache:hits");
 
-      const cacheHits =
-        await redisClient.incr("cache:hits");
+      const cacheMisses = Number(await redisClient.get("cache:misses")) || 0;
 
-      const cacheMisses =
-        Number(
-          await redisClient.get("cache:misses")
-        ) || 0;
-
-      console.log(
-        "CACHE HIT:",
-        cacheKey
-      );
+      console.log("CACHE HIT:", cacheKey);
 
       return res.json({
-
         catalogo: JSON.parse(cachedCatalogo),
 
         cacheStatus: "HIT",
@@ -150,70 +119,48 @@ router.get("/catalogo", async (req, res) => {
         cacheHits,
 
         cacheMisses,
-
       });
-
     }
-
 
     // ======================================================
     // CACHE MISS
     // ======================================================
 
-    const cacheMisses =
-      await redisClient.incr("cache:misses");
+    const cacheMisses = await redisClient.incr("cache:misses");
 
-    console.log(
-      "CACHE MISS:",
-      cacheKey
-    );
-
+    console.log("CACHE MISS:", cacheKey);
 
     // ======================================================
     // LEER CSV
     // ======================================================
 
-    const catalogo =
-      await leerViajesCSV();
-
+    const catalogo = await leerViajesCSV();
 
     // ======================================================
-    // GUARDAR CATÁLOGO EN REDIS (3 min)
+    // GUARDAR ORÍGENES Y DESTINOS EN SETS DE REDIS
     // ======================================================
 
-    await redisClient.set(
-      cacheKey,
-      JSON.stringify(catalogo),
-      {
-        EX: 180
-      }
-    );
+    for (const viaje of catalogo) {
+      await redisClient.sAdd("origenes:disponibles", viaje.origen);
 
+      await redisClient.sAdd("destinos:disponibles", viaje.destino);
+    }
 
     // ======================================================
     // PREPARAR LOS VIAJES EN REDIS
     // ======================================================
-   
 
     for (const viaje of catalogo) {
+      const viajeKey = `viaje:${viaje.id}`;
 
-      const viajeKey =
-        `viaje:${viaje.id}`;
-
-      const capacidadKey =
-        `viaje:${viaje.id}:capacidad`;
-
+      const capacidadKey = `viaje:${viaje.id}:capacidad`;
 
       // solo creamos el viaje si todavía no existe.
 
-
-      const existeViaje =
-        await redisClient.exists(viajeKey);
+      const existeViaje = await redisClient.exists(viajeKey);
 
       if (!existeViaje) {
-
         await redisClient.hSet(viajeKey, {
-
           origen: viaje.origen,
 
           destino: viaje.destino,
@@ -227,42 +174,27 @@ router.get("/catalogo", async (req, res) => {
           tipoBus: viaje.tipoBus,
 
           precio: String(viaje.precio),
-
         });
-
       }
 
-
-      const existeCapacidad =
-        await redisClient.exists(capacidadKey);
+      const existeCapacidad = await redisClient.exists(capacidadKey);
 
       if (!existeCapacidad) {
-
         await redisClient.set(
-
           capacidadKey,
 
-          viaje.capacidad
-
+          viaje.capacidad,
         );
-
       }
-
     }
-
 
     // ======================================================
     // MÉTRICAS
     // ======================================================
 
-    const cacheHits =
-      Number(
-        await redisClient.get("cache:hits")
-      ) || 0;
-
+    const cacheHits = Number(await redisClient.get("cache:hits")) || 0;
 
     return res.json({
-
       catalogo,
 
       cacheStatus: "MISS",
@@ -270,131 +202,94 @@ router.get("/catalogo", async (req, res) => {
       cacheHits,
 
       cacheMisses,
-
     });
-
   } catch (error) {
-
-    console.error(
-      "ERROR OBTENIENDO CATÁLOGO:",
-      error
-    );
+    console.error("ERROR OBTENIENDO CATÁLOGO:", error);
 
     return res.status(500).json({
-
       error: "Error obteniendo el catálogo",
-
     });
-
   }
-
 });
 
+// ==========================================================
+// GET /viajes/opciones
+// Obtener orígenes y destinos disponibles desde Redis
+// ==========================================================
+
+router.get("/opciones", async (_req, res) => {
+  try {
+    const origenes = await redisClient.sMembers("origenes:disponibles");
+
+    const destinos = await redisClient.sMembers("destinos:disponibles");
+
+    return res.json({
+      origenes,
+      destinos,
+    });
+  } catch (error) {
+    console.error("Error obteniendo opciones de viaje:", error);
+
+    return res.status(500).json({
+      error: "Error obteniendo orígenes y destinos",
+    });
+  }
+});
 
 // ==========================================================
 // GET /viajes/:id/asientos
 // ==========================================================
 
 router.get("/:id/asientos", async (req, res) => {
-
   const viajeId = req.params.id;
 
   try {
-
-    const capacidad =
-      await redisClient.get(
-        `viaje:${viajeId}:capacidad`
-      );
-
+    const capacidad = await redisClient.get(`viaje:${viajeId}:capacidad`);
 
     if (capacidad === null) {
-
       return res.status(404).json({
-
         error: "El viaje no existe",
-
       });
-
     }
 
-
-    const capacidadNumerica =
-      Number(capacidad);
-
+    const capacidadNumerica = Number(capacidad);
 
     const asientos = [];
 
+    for (let numero = 1; numero <= capacidadNumerica; numero++) {
+      const key = `viaje:${viajeId}:asiento:${numero}`;
 
-    for (
-      let numero = 1;
-      numero <= capacidadNumerica;
-      numero++
-    ) {
+      const estado = await redisClient.get(key);
 
-      const key =
-        `viaje:${viajeId}:asiento:${numero}`;
-
-
-      const estado =
-        await redisClient.get(key);
-
-
-      let estadoAsiento =
-        "disponible";
-
+      let estadoAsiento = "disponible";
 
       if (estado === "vendido") {
-
-        estadoAsiento =
-          "vendido";
-
+        estadoAsiento = "vendido";
+      } else if (estado !== null) {
+        estadoAsiento = "bloqueado";
       }
-
-      else if (estado !== null) {
-
-        estadoAsiento =
-          "bloqueado";
-
-      }
-
 
       asientos.push({
-
         numero,
 
         estado: estadoAsiento,
-
       });
-
     }
 
-
     return res.json({
-
       viajeId,
 
       capacidad: capacidadNumerica,
 
       asientos,
-
     });
-
   } catch (error) {
-
-    console.error(
-      "Error obteniendo asientos:",
-      error
-    );
+    console.error("Error obteniendo asientos:", error);
 
     return res.status(500).json({
-
       error: "Error obteniendo los asientos",
-
     });
-
   }
-
 });
-
 
 export default router;

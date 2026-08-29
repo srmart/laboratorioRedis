@@ -3,13 +3,11 @@ import { useEffect, useState } from "react";
 import SelectorAsientos from "./components/seatselector.jsx";
 
 export default function App() {
-
   // ==========================================================
   // ESTADO DEL BACKEND Y REDIS
   // ==========================================================
 
   const [status, setStatus] = useState("Loading backend status...");
-
 
   // ==========================================================
   // VIAJES
@@ -23,7 +21,6 @@ export default function App() {
   */
   const [viajesCatalogo, setViajesCatalogo] = useState([]);
 
-
   // ==========================================================
   // RESERVA ACTUAL
   // ==========================================================
@@ -31,7 +28,6 @@ export default function App() {
   const [reserva, setReserva] = useState(null);
 
   const [tiempoRestante, setTiempoRestante] = useState(0);
-
 
   // ==========================================================
   // USUARIO DE LA RESERVA
@@ -43,13 +39,11 @@ export default function App() {
   */
   const [nombreReserva, setNombreReserva] = useState("");
 
-
   // ==========================================================
   // ORDENES / QUEUE
   // ==========================================================
 
   const [ordenes, setOrdenes] = useState([]);
-
 
   // ==========================================================
   // CACHE
@@ -63,7 +57,6 @@ export default function App() {
 
   const [ultimaConsultaCache, setUltimaConsultaCache] = useState(null);
 
-
   // ==========================================================
   // FORMULARIO DE BUSQUEDA
   // ==========================================================
@@ -74,6 +67,10 @@ export default function App() {
 
   const [fecha, setFecha] = useState("");
 
+  const [opcionesViaje, setOpcionesViaje] = useState({
+    origenes: [],
+    destinos: [],
+  });
 
   // ==========================================================
   // SELECTOR DE ASIENTOS
@@ -88,15 +85,18 @@ export default function App() {
   const [nombreUsuario, setNombreUsuario] = useState("");
 
   // ==========================================================
+  // RANKING
+  // ==========================================================
+
+  const [rankingDestinos, setRankingDestinos] = useState([]);
+
+  // ==========================================================
   // ESTADO DEL BACKEND
   // ==========================================================
 
   useEffect(() => {
-
     const loadStatus = async () => {
-
       try {
-
         const response = await fetch("/api/health");
 
         if (!response.ok) {
@@ -105,45 +105,29 @@ export default function App() {
 
         const data = await response.json();
 
-        setStatus(
-          `Backend: ${data.backend} | Redis: ${data.redis}`
-        );
-
+        setStatus(`Backend: ${data.backend} | Redis: ${data.redis}`);
       } catch (error) {
-
-        setStatus(
-          `Backend / Redis no disponibles: ${error.message}`
-        );
-
+        setStatus(`Backend / Redis no disponibles: ${error.message}`);
       }
-
     };
 
     loadStatus();
-
   }, []);
-
 
   // ==========================================================
   // CONTADOR DE RESERVA
   // ==========================================================
 
   useEffect(() => {
-
     if (reserva === null) {
       return;
     }
 
     const intervalo = setInterval(async () => {
-
       try {
-
-        const response = await fetch(
-          `/api/reservas/${reserva.id}`
-        );
+        const response = await fetch(`/api/reservas/${reserva.id}`);
 
         if (!response.ok) {
-
           setReserva(null);
           setTiempoRestante(0);
 
@@ -155,36 +139,47 @@ export default function App() {
         setTiempoRestante(data.ttl);
 
         if (data.ttl <= 0) {
-
           setReserva(null);
           setTiempoRestante(0);
-
         }
-
       } catch (error) {
-
-        console.error(
-          "Error consultando TTL:",
-          error
-        );
-
+        console.error("Error consultando TTL:", error);
       }
-
     }, 1000);
 
     return () => {
       clearInterval(intervalo);
     };
-
   }, [reserva]);
 
+  // ==========================================================
+  // CARGAR ORÍGENES Y DESTINOS
+  // ==========================================================
+
+  const cargarOpcionesViaje = async () => {
+    try {
+      const response = await fetch("/api/viajes/opciones");
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP ${response.status}`);
+      }
+
+      setOpcionesViaje({
+        origenes: data.origenes,
+        destinos: data.destinos,
+      });
+    } catch (error) {
+      console.error("Error cargando opciones de viaje:", error);
+    }
+  };
 
   // ==========================================================
   // BUSCAR VIAJES
   // ==========================================================
 
   const buscarViajes = async (event) => {
-
     event.preventDefault();
 
     console.log("Buscando viajes...");
@@ -192,15 +187,13 @@ export default function App() {
     console.log({
       origen,
       destino,
-      fecha
+      fecha,
     });
 
     try {
-
       const [anio, mes, dia] = fecha.split("-");
 
-      const fechaRedis =
-        `${dia}/${mes}/${anio}`;
+      const fechaRedis = `${dia}/${mes}/${anio}`;
 
       const params = new URLSearchParams({
         origen,
@@ -208,33 +201,20 @@ export default function App() {
         fecha: fechaRedis,
       });
 
-      const url =
-        `/api/viajes?${params}`;
+      const url = `/api/viajes?${params}`;
 
       console.log("URL:", url);
 
       const response = await fetch(url);
 
-      console.log(
-        "STATUS:",
-        response.status
-      );
+      console.log("STATUS:", response.status);
 
-      const resultados =
-        await response.json();
+      const resultados = await response.json();
 
-      console.log(
-        "RESULTADOS:",
-        resultados
-      );
+      console.log("RESULTADOS:", resultados);
 
       if (!response.ok) {
-
-        throw new Error(
-          resultados.error ||
-          `HTTP ${response.status}`
-        );
-
+        throw new Error(resultados.error || `HTTP ${response.status}`);
       }
 
       setViajesEncontrados(resultados);
@@ -244,53 +224,32 @@ export default function App() {
         posteriormente con las reservas.
       */
       setViajesCatalogo((actuales) => {
-
         const mapa = new Map();
 
-        [...actuales, ...resultados].forEach(
-          (viaje) => {
-            mapa.set(String(viaje.id), viaje);
-          }
-        );
+        [...actuales, ...resultados].forEach((viaje) => {
+          mapa.set(String(viaje.id), viaje);
+        });
 
         return [...mapa.values()];
-
       });
-
     } catch (error) {
-
-      console.error(
-        "ERROR:",
-        error
-      );
-
+      console.error("ERROR:", error);
     }
-
   };
-
 
   // ==========================================================
   // RESERVAR VIAJE
   // ==========================================================
 
   const reservarViaje = async (viaje) => {
-
     try {
-
-      const response = await fetch(
-        `/api/viajes/${viaje.id}/asientos`
-      );
+      const response = await fetch(`/api/viajes/${viaje.id}/asientos`);
 
       if (!response.ok) {
-
-        throw new Error(
-          "No se pudieron obtener los asientos"
-        );
-
+        throw new Error("No se pudieron obtener los asientos");
       }
 
-      const data =
-        await response.json();
+      const data = await response.json();
 
       setViajeSeleccionado(viaje);
 
@@ -302,71 +261,35 @@ export default function App() {
       */
       setNombreReserva("");
 
-      const ocupados =
-        data.asientos
-          .filter(
-            (asiento) =>
-              asiento.estado !== "disponible"
-          )
-          .map(
-            (asiento) =>
-              asiento.numero
-          );
+      const ocupados = data.asientos
+        .filter((asiento) => asiento.estado !== "disponible")
+        .map((asiento) => asiento.numero);
 
       setAsientosOcupados(ocupados);
-
     } catch (error) {
+      console.error("Error obteniendo asientos:", error);
 
-      console.error(
-        "Error obteniendo asientos:",
-        error
-      );
-
-      alert(
-        "No se pudieron cargar los asientos"
-      );
-
+      alert("No se pudieron cargar los asientos");
     }
-
   };
-
 
   // ==========================================================
   // SELECCIONAR ASIENTO
   // ==========================================================
 
   const toggleAsiento = (numero) => {
-
-    if (
-      asientosOcupados.includes(numero)
-    ) {
+    if (asientosOcupados.includes(numero)) {
       return;
     }
 
-    setAsientosSeleccionados(
-      (actuales) => {
-
-        if (
-          actuales.includes(numero)
-        ) {
-
-          return actuales.filter(
-            (asiento) =>
-              asiento !== numero
-          );
-
-        }
-
-        return [
-          ...actuales,
-          numero
-        ];
-
+    setAsientosSeleccionados((actuales) => {
+      if (actuales.includes(numero)) {
+        return actuales.filter((asiento) => asiento !== numero);
       }
-    );
 
+      return [...actuales, numero];
+    });
   };
-
 
   // ==========================================================
   // CONFIRMAR SELECCION DE ASIENTOS
@@ -374,93 +297,72 @@ export default function App() {
 
   const confirmarSeleccionAsientos = async () => {
     if (
-        !viajeSeleccionado ||
-        asientosSeleccionados.length === 0 ||
-        nombreUsuario.trim() === ""
+      !viajeSeleccionado ||
+      asientosSeleccionados.length === 0 ||
+      nombreUsuario.trim() === ""
     ) {
-        return;
+      return;
     }
 
     try {
-        const response = await fetch("/api/reservas", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                viajeId: viajeSeleccionado.id,
-                nombre: nombreUsuario.trim(),
-                asientos: asientosSeleccionados,
-            }),
-        });
+      const response = await fetch("/api/reservas", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          viajeId: viajeSeleccionado.id,
+          nombre: nombreUsuario.trim(),
+          asientos: asientosSeleccionados,
+        }),
+      });
 
-        const data = await response.json();
+      const data = await response.json();
 
-        if (!response.ok) {
-            alert(
-                data.error ||
-                "No se pudo crear la reserva"
-            );
-            return;
-        }
+      if (!response.ok) {
+        alert(data.error || "No se pudo crear la reserva");
+        return;
+      }
 
-        setReserva({
-            ...viajeSeleccionado,
-            ...data,
-            asientos: data.asientos,
-        });
+      setReserva({
+        ...viajeSeleccionado,
+        ...data,
+        asientos: data.asientos,
+      });
 
-        setTiempoRestante(data.expiraEnSegundos);
+      setTiempoRestante(data.expiraEnSegundos);
 
-        setViajeSeleccionado(null);
-        setAsientosSeleccionados([]);
-        setAsientosOcupados([]);
-        setNombreUsuario("");
+      setViajeSeleccionado(null);
+      setAsientosSeleccionados([]);
+      setAsientosOcupados([]);
+      setNombreUsuario("");
 
-        await cargarOrdenes();
-
+      await cargarOrdenes();
     } catch (error) {
-        console.error(
-            "Error creando reserva:",
-            error
-        );
+      console.error("Error creando reserva:", error);
 
-        alert(
-            "Error al crear la reserva"
-        );
+      alert("Error al crear la reserva");
     }
-};
-
+  };
 
   // ==========================================================
   // CANCELAR RESERVA
   // ==========================================================
 
   const cancelarReserva = async () => {
-
     if (!reserva) {
       return;
     }
 
     try {
+      const response = await fetch(`/api/reservas/${reserva.id}`, {
+        method: "DELETE",
+      });
 
-      const response =
-        await fetch(
-          `/api/reservas/${reserva.id}`,
-          {
-            method: "DELETE",
-          }
-        );
-
-      const data =
-        await response.json();
+      const data = await response.json();
 
       if (!response.ok) {
-
-        alert(
-          data.error ||
-          "No se pudo cancelar la reserva"
-        );
+        alert(data.error || "No se pudo cancelar la reserva");
 
         return;
       }
@@ -470,336 +372,218 @@ export default function App() {
       setTiempoRestante(0);
 
       await cargarOrdenes();
-
     } catch (error) {
+      console.error("Error cancelando reserva:", error);
 
-      console.error(
-        "Error cancelando reserva:",
-        error
-      );
-
-      alert(
-        "No se pudo cancelar la reserva"
-      );
-
+      alert("No se pudo cancelar la reserva");
     }
-
   };
-
 
   // ==========================================================
   // FINALIZAR COMPRA
   // ==========================================================
 
   const finalizarCompra = async () => {
-
     if (!reserva) {
       return;
     }
 
     try {
+      const response = await fetch(`/api/reservas/${reserva.id}/finalizar`, {
+        method: "POST",
+      });
 
-      const response =
-        await fetch(
-          `/api/reservas/${reserva.id}/finalizar`,
-          {
-            method: "POST",
-          }
-        );
-
-      const data =
-        await response.json();
+      const data = await response.json();
 
       if (!response.ok) {
-
-        alert(
-          data.error ||
-          "No se pudo finalizar la compra"
-        );
+        alert(data.error || "No se pudo finalizar la compra");
 
         return;
       }
 
-      console.log(
-        "Compra finalizada:",
-        data
-      );
+      console.log("Compra finalizada:", data);
 
       setReserva(null);
 
       setTiempoRestante(0);
 
       await cargarOrdenes();
-
     } catch (error) {
+      console.error("Error finalizando compra:", error);
 
-      console.error(
-        "Error finalizando compra:",
-        error
-      );
-
-      alert(
-        "No se pudo finalizar la compra"
-      );
-
+      alert("No se pudo finalizar la compra");
     }
-
   };
-
 
   // ==========================================================
   // CARGAR ORDENES
   // ==========================================================
 
   const cargarOrdenes = async () => {
-
     try {
-
-      const response =
-        await fetch(
-          "/api/reservas"
-        );
+      const response = await fetch("/api/reservas");
 
       if (!response.ok) {
-
-        throw new Error(
-          `HTTP ${response.status}`
-        );
-
+        throw new Error(`HTTP ${response.status}`);
       }
 
-      const data =
-        await response.json();
+      const data = await response.json();
 
       setOrdenes(data);
-
     } catch (error) {
-
-      console.error(
-        "Error cargando órdenes:",
-        error
-      );
-
+      console.error("Error cargando órdenes:", error);
     }
-
   };
 
+  // ==========================================================
+  // RANKING DE DESTINOS
+  // ==========================================================
+
+  const cargarRankingDestinos = async () => {
+    try {
+      const response = await fetch("/api/reservas/ranking-destinos");
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP ${response.status}`);
+      }
+
+      setRankingDestinos(data);
+    } catch (error) {
+      console.error("Error cargando ranking de destinos:", error);
+    }
+  };
+
+  // ==========================================================
+  // CARGAR ORDENES AL INICIAR
+  // ==========================================================
 
   useEffect(() => {
-
     cargarOrdenes();
-
   }, []);
 
+  useEffect(() => {
+    cargarRankingDestinos();
+  }, []);
+  useEffect(() => {
+    cargarOpcionesViaje();
+  }, []);
 
   // ==========================================================
   // BUSCAR DATOS DEL VIAJE DE UNA ORDEN
   // ==========================================================
 
   const obtenerViajeDeOrden = (orden) => {
-
     return viajesCatalogo.find(
-      (viaje) =>
-        String(viaje.id) ===
-        String(orden.viajeId)
+      (viaje) => String(viaje.id) === String(orden.viajeId),
     );
-
   };
-
 
   // ==========================================================
   // PROCESAR SIGUIENTE ORDEN
   // ==========================================================
 
-  const procesarSiguienteOrden =
-    async () => {
+  const procesarSiguienteOrden = async () => {
+    try {
+      const response = await fetch("/api/reservas/procesar", {
+        method: "POST",
+      });
 
-      try {
+      const data = await response.json();
 
-        const response =
-          await fetch(
-            "/api/reservas/procesar",
-            {
-              method: "POST",
-            }
-          );
+      if (!response.ok) {
+        alert(data.error || "No hay reservas para procesar");
 
-        const data =
-          await response.json();
-
-        if (!response.ok) {
-
-          alert(
-            data.error ||
-            "No hay reservas para procesar"
-          );
-
-          return;
-        }
-
-        console.log(
-          "Reserva procesada:",
-          data
-        );
-
-        await cargarOrdenes();
-
-      } catch (error) {
-
-        console.error(
-          "Error procesando reserva:",
-          error
-        );
-
-        alert(
-          "No se pudo procesar la reserva"
-        );
-
+        return;
       }
 
-    };
+      console.log("Reserva procesada:", data);
 
+      await cargarOrdenes();
+    } catch (error) {
+      console.error("Error procesando reserva:", error);
+
+      alert("No se pudo procesar la reserva");
+    }
+  };
 
   // ==========================================================
   // RESOLVER SIGUIENTE ORDEN
   // ==========================================================
 
-  const resolverSiguienteOrden =
-    async () => {
+  const resolverSiguienteOrden = async () => {
+    try {
+      const response = await fetch("/api/reservas/resolver", {
+        method: "POST",
+      });
 
-      try {
+      const data = await response.json();
 
-        const response =
-          await fetch(
-            "/api/reservas/resolver",
-            {
-              method: "POST",
-            }
-          );
+      if (!response.ok) {
+        alert(data.error || "No hay reservas para resolver");
 
-        const data =
-          await response.json();
-
-        if (!response.ok) {
-
-          alert(
-            data.error ||
-            "No hay reservas para resolver"
-          );
-
-          return;
-        }
-
-        console.log(
-          "Reserva resuelta:",
-          data
-        );
-
-        await cargarOrdenes();
-
-      } catch (error) {
-
-        console.error(
-          "Error resolviendo reserva:",
-          error
-        );
-
-        alert(
-          "No se pudo resolver la reserva"
-        );
-
+        return;
       }
 
-    };
+      console.log("Reserva resuelta:", data);
 
+      await cargarOrdenes();
+      await cargarRankingDestinos();
+    } catch (error) {
+      console.error("Error resolviendo reserva:", error);
+
+      alert("No se pudo resolver la reserva");
+    }
+  };
 
   // ==========================================================
   // CONSULTAR CATALOGO / CACHE
   // ==========================================================
 
   const consultarCatalogo = async () => {
-
     try {
+      const response = await fetch("/api/viajes/catalogo");
 
-      const response =
-        await fetch(
-          "/api/viajes/catalogo"
-        );
-
-      const data =
-        await response.json();
+      const data = await response.json();
 
       if (!response.ok) {
-
-        throw new Error(
-          data.error ||
-          `HTTP ${response.status}`
-        );
-
+        throw new Error(data.error || `HTTP ${response.status}`);
       }
 
-      console.log(
-        "Consulta catálogo:",
-        data
-      );
+      console.log("Consulta catálogo:", data);
 
-      setCatalogo(
-        data.catalogo
-      );
+      setCatalogo(data.catalogo);
 
-      setCacheHits(
-        data.cacheHits
-      );
+      setCacheHits(data.cacheHits);
 
-      setCacheMisses(
-        data.cacheMisses
-      );
+      setCacheMisses(data.cacheMisses);
 
-      setUltimaConsultaCache(
-        data.cacheStatus
-      );
+      setUltimaConsultaCache(data.cacheStatus);
 
       /*
         También guardamos los viajes del catálogo
         para poder relacionarlos con las órdenes.
       */
-      setViajesCatalogo(
-        data.catalogo
-      );
-
+      setViajesCatalogo(data.catalogo);
     } catch (error) {
-
-      console.error(
-        "Error consultando catálogo:",
-        error
-      );
-
+      console.error("Error consultando catálogo:", error);
     }
-
   };
-
 
   // ==========================================================
   // FORMATEAR TIEMPO
   // ==========================================================
 
   const formatearTiempo = (segundos) => {
+    const minutos = Math.floor(segundos / 60);
 
-    const minutos =
-      Math.floor(segundos / 60);
+    const segundosRestantes = segundos % 60;
 
-    const segundosRestantes =
-      segundos % 60;
-
-    return `${String(minutos).padStart(
-      2,
-      "0"
-    )}:${String(
-      segundosRestantes
+    return `${String(minutos).padStart(2, "0")}:${String(
+      segundosRestantes,
     ).padStart(2, "0")}`;
-
   };
-
 
   // ==========================================================
   // INTERFAZ
@@ -807,706 +591,433 @@ export default function App() {
 
   return (
     <>
-
       {/* ======================================================
           ENCABEZADO
           ====================================================== */}
 
       <header className="header">
-
         <h1>RediBus</h1>
 
         <nav>
+          <a href="#buscar">Buscar viajes</a>
 
-          <a href="#buscar">
-            Buscar viajes
-          </a>
+          <a href="#reserva">Mi reserva</a>
 
-          <a href="#reserva">
-            Mi reserva
-          </a>
+          <a href="#ordenes">Ordenes</a>
 
-          <a href="#ordenes">
-            Ordenes
-          </a>
+          <a href="#ranking">Ranking</a>
 
-          <a href="#cache">
-            Cache
-          </a>
-
+          <a href="#cache">Cache</a>
         </nav>
-
       </header>
 
-
       <main className="page">
-
-
         {/* ====================================================
-            BUSCAR VIAJES
-            ==================================================== */}
+    BUSCAR VIAJES
+    ==================================================== */}
 
         <section id="buscar">
+          <h2>Encontra tu proximo viaje</h2>
 
-          <h2>
-            Encontra tu proximo viaje
-          </h2>
+          <p>Busca y reserva tu pasaje de omnibus.</p>
 
-          <p>
-            Busca y reserva tu pasaje de omnibus.
-          </p>
-
-
-          <form
-            className="form-busqueda"
-            onSubmit={buscarViajes}
-          >
-
+          <form className="form-busqueda" onSubmit={buscarViajes}>
             <div className="campo">
+              <label htmlFor="origen">Origen</label>
 
-              <label htmlFor="origen">
-                Origen
-              </label>
-
-              <input
-                type="text"
+              <select
                 id="origen"
-                placeholder="Ej: Montevideo"
                 value={origen}
-                onChange={(event) =>
-                  setOrigen(
-                    event.target.value
-                  )
-                }
-              />
+                onChange={(event) => setOrigen(event.target.value)}
+              >
+                <option value="">Seleccioná un origen</option>
 
+                {opcionesViaje.origenes.map((opcion) => (
+                  <option key={opcion} value={opcion}>
+                    {opcion}
+                  </option>
+                ))}
+              </select>
             </div>
 
-
             <div className="campo">
+              <label htmlFor="destino">Destino</label>
 
-              <label htmlFor="destino">
-                Destino
-              </label>
-
-              <input
-                type="text"
+              <select
                 id="destino"
-                placeholder="Ej: Punta del Este"
                 value={destino}
-                onChange={(event) =>
-                  setDestino(
-                    event.target.value
-                  )
-                }
-              />
+                onChange={(event) => setDestino(event.target.value)}
+              >
+                <option value="">Seleccioná un destino</option>
 
+                {opcionesViaje.destinos.map((opcion) => (
+                  <option key={opcion} value={opcion}>
+                    {opcion}
+                  </option>
+                ))}
+              </select>
             </div>
 
-
             <div className="campo">
-
-              <label htmlFor="fecha">
-                Fecha
-              </label>
+              <label htmlFor="fecha">Fecha</label>
 
               <input
                 type="date"
                 id="fecha"
                 value={fecha}
-                onChange={(event) =>
-                  setFecha(
-                    event.target.value
-                  )
-                }
+                onChange={(event) => setFecha(event.target.value)}
               />
-
             </div>
 
-
-            <button type="submit">
-              Buscar viajes
-            </button>
-
+            <button type="submit">Buscar viajes</button>
           </form>
-
 
           {/* ==================================================
               RESULTADOS
               ================================================== */}
 
           <div className="resultados">
+            <p>Cantidad encontrada: {viajesEncontrados.length}</p>
 
-            <p>
-              Cantidad encontrada:{" "}
-              {viajesEncontrados.length}
-            </p>
+            {viajesEncontrados.map((viaje) => {
+              const estaReservado =
+                reserva !== null && String(reserva.id) === String(viaje.id);
 
+              return (
+                <div className="viaje" key={viaje.id}>
+                  <h3>Viaje #{viaje.id}</h3>
 
-            {viajesEncontrados.map(
-              (viaje) => {
+                  <p>
+                    {viaje.origen} - {viaje.destino}
+                  </p>
 
-                const estaReservado =
-                  reserva !== null &&
-                  String(reserva.id) ===
-                    String(viaje.id);
+                  <p>Fecha: {viaje.fecha}</p>
 
+                  <p>Salida: {viaje.horaSalida}</p>
 
-                return (
+                  <p>Llegada: {viaje.horaLlegada}</p>
 
-                  <div
-                    className="viaje"
-                    key={viaje.id}
+                  <p>Precio: ${viaje.precio}</p>
+
+                  <p>Asientos disponibles: {viaje.asientosDisponibles}</p>
+
+                  <button
+                    type="button"
+                    className="btn-reservar"
+                    onClick={() => reservarViaje(viaje)}
                   >
+                    {estaReservado ? "Seleccionado" : "Reservar"}
+                  </button>
 
-                    <h3>
-                      Viaje #{viaje.id}
-                    </h3>
+                  {estaReservado && (
+                    <div className="reserva-confirmacion">
+                      <p>Viaje seleccionado para reservar.</p>
 
-                    <p>
-                      {viaje.origen} -{" "}
-                      {viaje.destino}
-                    </p>
-
-                    <p>
-                      Fecha:{" "}
-                      {viaje.fecha}
-                    </p>
-
-                    <p>
-                      Salida:{" "}
-                      {viaje.horaSalida}
-                    </p>
-
-                    <p>
-                      Llegada:{" "}
-                      {viaje.horaLlegada}
-                    </p>
-
-                    <p>
-                      Precio: $
-                      {viaje.precio}
-                    </p>
-
-                    <p>
-                      Asientos disponibles:{" "}
-                      {viaje.asientosDisponibles}
-                    </p>
-
-
-                    <button
-                      type="button"
-                      className="btn-reservar"
-                      onClick={() =>
-                        reservarViaje(viaje)
-                      }
-                    >
-
-                      {estaReservado
-                        ? "Seleccionado"
-                        : "Reservar"}
-
-                    </button>
-
-
-                    {estaReservado && (
-
-                      <div className="reserva-confirmacion">
-
-                        <p>
-                          Viaje seleccionado
-                          para reservar.
-                        </p>
-
-                        <p>
-                          Tiempo restante:{" "}
-                          {formatearTiempo(
-                            tiempoRestante
-                          )}
-                        </p>
-
-                      </div>
-
-                    )}
-
-                  </div>
-
-                );
-
-              }
-            )}
-
+                      <p>Tiempo restante: {formatearTiempo(tiempoRestante)}</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
-
 
           {/* ==================================================
               SELECTOR DE ASIENTOS
               ================================================== */}
 
           {viajeSeleccionado !== null && (
-
             <div>
-
               <SelectorAsientos
-                  capacidad={Number(viajeSeleccionado.capacidad || 20)}
-                  asientosOcupados={asientosOcupados}
-                  asientosSeleccionados={asientosSeleccionados}
-                  onToggleAsiento={toggleAsiento}
-                  onConfirmar={confirmarSeleccionAsientos}
-                  onCancelar={() => {
-                      setViajeSeleccionado(null);
-                      setAsientosSeleccionados([]);
-                      setAsientosOcupados([]);
-                      setNombreUsuario("");
-                  }}
-                  precio={viajeSeleccionado.precio}
-                  nombreUsuario={nombreUsuario}
-                  onNombreUsuarioChange={setNombreUsuario}
+                capacidad={Number(viajeSeleccionado.capacidad || 20)}
+                asientosOcupados={asientosOcupados}
+                asientosSeleccionados={asientosSeleccionados}
+                onToggleAsiento={toggleAsiento}
+                onConfirmar={confirmarSeleccionAsientos}
+                onCancelar={() => {
+                  setViajeSeleccionado(null);
+                  setAsientosSeleccionados([]);
+                  setAsientosOcupados([]);
+                  setNombreUsuario("");
+                }}
+                precio={viajeSeleccionado.precio}
+                nombreUsuario={nombreUsuario}
+                onNombreUsuarioChange={setNombreUsuario}
               />
-
-
-              
-
             </div>
-
           )}
-
         </section>
-
 
         {/* ====================================================
             MI RESERVA
             ==================================================== */}
 
         <section id="reserva">
-
-          <h2>
-            Mi reserva
-          </h2>
-
+          <h2>Mi reserva</h2>
 
           {reserva === null ? (
-
-            <p>
-              No tenes ninguna reserva activa.
-            </p>
-
+            <p>No tenes ninguna reserva activa.</p>
           ) : (
-
             <div className="viaje">
-
-              <h3>
-                Reserva #{reserva.id}
-              </h3>
+              <h3>Reserva #{reserva.id}</h3>
 
               <p>
-                Usuario:{" "}
-                <strong>
-                  {reserva.nombre}
-                </strong>
+                Usuario: <strong>{reserva.nombre}</strong>
               </p>
 
               <p>
-                Ruta:{" "}
-                {reserva.origen} -{" "}
-                {reserva.destino}
+                Ruta: {reserva.origen} - {reserva.destino}
               </p>
 
-              <p>
-                Fecha:{" "}
-                {reserva.fecha}
-              </p>
+              <p>Fecha: {reserva.fecha}</p>
 
-              <p>
-                Salida:{" "}
-                {reserva.horaSalida}
-              </p>
+              <p>Salida: {reserva.horaSalida}</p>
 
-              <p>
-                Llegada:{" "}
-                {reserva.horaLlegada}
-              </p>
+              <p>Llegada: {reserva.horaLlegada}</p>
 
-              <p>
-                Asientos:{" "}
-                {reserva.asientos?.join(", ")}
-              </p>
+              <p>Asientos: {reserva.asientos?.join(", ")}</p>
 
-              <p>
-                Precio: $
-                {reserva.precio}
-              </p>
-
+              <p>Precio: ${reserva.precio}</p>
 
               <div className="contador-reserva">
+                <span>Tiempo restante para finalizar la compra</span>
 
-                <span>
-                  Tiempo restante para finalizar
-                  la compra
-                </span>
-
-                <strong>
-                  {formatearTiempo(
-                    tiempoRestante
-                  )}
-                </strong>
-
+                <strong>{formatearTiempo(tiempoRestante)}</strong>
               </div>
 
-
               <div className="acciones-reserva">
-
                 <button
                   type="button"
                   className="btn-finalizar"
-                  onClick={
-                    finalizarCompra
-                  }
+                  onClick={finalizarCompra}
                 >
                   Finalizar compra
                 </button>
 
-
                 <button
                   type="button"
                   className="btn-cancelar"
-                  onClick={
-                    cancelarReserva
-                  }
+                  onClick={cancelarReserva}
                 >
                   Cancelar reserva
                 </button>
-
               </div>
-
             </div>
-
           )}
-
         </section>
-
 
         {/* ====================================================
             ORDENES / QUEUE
             ==================================================== */}
 
         <section id="ordenes">
+          <h2>Ordenes</h2>
 
-          <h2>
-            Ordenes
-          </h2>
-
-          <p>
-            Las ordenes se procesan respetando
-            el orden de llegada.
-          </p>
-
+          <p>Las ordenes se procesan respetando el orden de llegada.</p>
 
           <div className="acciones-queue">
-
             <button
               type="button"
               className="btn-procesar"
-              onClick={
-                procesarSiguienteOrden
-              }
+              onClick={procesarSiguienteOrden}
             >
               Procesar siguiente
             </button>
 
-
             <button
               type="button"
               className="btn-resolver"
-              onClick={
-                resolverSiguienteOrden
-              }
+              onClick={resolverSiguienteOrden}
             >
               Resolver siguiente
             </button>
-
           </div>
 
-
           {ordenes.length === 0 ? (
-
-            <p>
-              No hay ordenes actualmente.
-            </p>
-
+            <p>No hay ordenes actualmente.</p>
           ) : (
-
             <div className="lista-ordenes">
+              {ordenes.map((orden, index) => {
+                const viaje = obtenerViajeDeOrden(orden);
 
-              {ordenes.map(
-                (orden, index) => {
+                return (
+                  <div className="orden" key={orden.id}>
+                    <h3>Reserva #{orden.id}</h3>
 
-                  const viaje =
-                    obtenerViajeDeOrden(
-                      orden
-                    );
+                    <p>Posicion de llegada: {index + 1}</p>
 
+                    {/* USUARIO */}
 
-                  return (
+                    <p>
+                      Usuario: <strong>{orden.nombre || "Sin nombre"}</strong>
+                    </p>
 
-                    <div
-                      className="orden"
-                      key={orden.id}
-                    >
+                    {/* VIAJE */}
 
-                      <h3>
-                        Reserva #{orden.id}
-                      </h3>
+                    <p>Viaje: #{orden.viajeId}</p>
 
-                      <p>
-                        Posicion de llegada:{" "}
-                        {index + 1}
-                      </p>
-
-                      {/* USUARIO */}
-
-                      <p>
-                        Usuario:{" "}
-                        <strong>
-                          {orden.nombre ||
-                            "Sin nombre"}
-                        </strong>
-                      </p>
-
-
-                      {/* VIAJE */}
-
-                      <p>
-                        Viaje:{" "}
-                        #{orden.viajeId}
-                      </p>
-
-
-                      {viaje ? (
-
-                        <>
-
-                          <p>
-                            Ruta:{" "}
-                            {viaje.origen} -{" "}
-                            {viaje.destino}
-                          </p>
-
-                          <p>
-                            Fecha:{" "}
-                            {viaje.fecha}
-                          </p>
-
-                          <p>
-                            Salida:{" "}
-                            {viaje.horaSalida}
-                          </p>
-
-                          <p>
-                            Llegada:{" "}
-                            {viaje.horaLlegada}
-                          </p>
-
-                          <p>
-                            Precio: $
-                            {viaje.precio}
-                          </p>
-
-                        </>
-
-                      ) : (
-
+                    {viaje ? (
+                      <>
                         <p>
-                          Datos del viaje no
-                          disponibles en memoria.
+                          Ruta: {viaje.origen} - {viaje.destino}
                         </p>
 
-                      )}
+                        <p>Fecha: {viaje.fecha}</p>
 
+                        <p>Salida: {viaje.horaSalida}</p>
 
-                      {/* ASIENTOS */}
+                        <p>Llegada: {viaje.horaLlegada}</p>
 
-                      <p>
-                        Asientos:{" "}
-                        {orden.asientos
-                          ? JSON.parse(
-                              orden.asientos
-                            ).join(", ")
-                          : "N/A"}
-                      </p>
+                        <p>Precio: ${viaje.precio}</p>
+                      </>
+                    ) : (
+                      <p>Datos del viaje no disponibles en memoria.</p>
+                    )}
 
+                    {/* ASIENTOS */}
 
-                      {/* ESTADO */}
+                    <p>
+                      Asientos:{" "}
+                      {orden.asientos
+                        ? JSON.parse(orden.asientos).join(", ")
+                        : "N/A"}
+                    </p>
 
-                      <p>
+                    {/* ESTADO */}
 
-                        Estado:
-
-                        <span
-                          className={`estado-orden ${
-                            orden.estado.toLowerCase()
-                          }`}
-                        >
-
-                          {orden.estado}
-
-                        </span>
-
-                      </p>
-
-                    </div>
-
-                  );
-
-                }
-              )}
-
+                    <p>
+                      Estado:
+                      <span
+                        className={`estado-orden ${orden.estado.toLowerCase()}`}
+                      >
+                        {orden.estado}
+                      </span>
+                    </p>
+                  </div>
+                );
+              })}
             </div>
-
           )}
-
         </section>
 
+        {/* ====================================================
+    RANKING DE DESTINOS
+    ==================================================== */}
+
+        <section id="ranking">
+          <h2>Ranking de destinos</h2>
+
+          <p>Conocé los destinos más elegidos por nuestros pasajeros.</p>
+
+          {rankingDestinos.length === 0 ? (
+            <p className="ranking-vacio">
+              Todavía no hay reservas para mostrar en el ranking.
+            </p>
+          ) : (
+            <div className="ranking-destinos">
+              {rankingDestinos.map((item) => (
+                <div
+                  className={`ranking-item ${
+                    item.posicion === 1 ? "ranking-primer-lugar" : ""
+                  }`}
+                  key={item.destino}
+                >
+                  <div className="ranking-posicion">
+                    {item.posicion === 1
+                      ? "🥇"
+                      : item.posicion === 2
+                        ? "🥈"
+                        : item.posicion === 3
+                          ? "🥉"
+                          : `#${item.posicion}`}
+                  </div>
+
+                  <div className="ranking-info">
+                    <strong>{item.destino}</strong>
+
+                    <span>
+                      {item.reservas}{" "}
+                      {item.reservas === 1 ? "reserva" : "reservas"}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
 
         {/* ====================================================
             CACHE DEL CATALOGO
             ==================================================== */}
 
         <section id="cache">
-
-          <h2>
-            Cache del catalogo
-          </h2>
+          <h2>Cache del catalogo</h2>
 
           <p>
-            Consulta el catalogo y observa
-            si se produce un cache hit o
-            un cache miss.
+            Consulta el catalogo y observa si se produce un cache hit o un cache
+            miss.
           </p>
 
-
           <div className="cache-estadisticas">
-
             <div className="cache-contador">
+              <span>Cache Hits</span>
 
-              <span>
-                Cache Hits
-              </span>
-
-              <strong>
-                {cacheHits}
-              </strong>
-
+              <strong>{cacheHits}</strong>
             </div>
 
-
             <div className="cache-contador">
+              <span>Cache Misses</span>
 
-              <span>
-                Cache Misses
-              </span>
-
-              <strong>
-                {cacheMisses}
-              </strong>
-
+              <strong>{cacheMisses}</strong>
             </div>
-
           </div>
-
 
           <button
             type="button"
             className="btn-catalogo"
-            onClick={
-              consultarCatalogo
-            }
+            onClick={consultarCatalogo}
           >
             Consultar catalogo
           </button>
 
-
           {ultimaConsultaCache !== null && (
-
             <div
-              className={`resultado-cache ${
-                ultimaConsultaCache.toLowerCase()
-              }`}
+              className={`resultado-cache ${ultimaConsultaCache.toLowerCase()}`}
             >
-
-              Ultima consulta: CACHE{" "}
-              {ultimaConsultaCache}
-
+              Ultima consulta: CACHE {ultimaConsultaCache}
             </div>
-
           )}
-
 
           {catalogo.length > 0 && (
-
             <div className="catalogo">
+              <h3>Catalogo de viajes</h3>
 
-              <h3>
-                Catalogo de viajes
-              </h3>
+              {catalogo.map((viaje) => (
+                <div className="catalogo-item" key={viaje.id}>
+                  <strong>Viaje #{viaje.id}</strong>
 
+                  <span>
+                    {viaje.origen} - {viaje.destino}
+                  </span>
 
-              {catalogo.map(
-                (viaje) => (
+                  <span>{viaje.fecha}</span>
 
-                  <div
-                    className="catalogo-item"
-                    key={viaje.id}
-                  >
+                  <span>{viaje.horaSalida}</span>
 
-                    <strong>
-                      Viaje #{viaje.id}
-                    </strong>
-
-                    <span>
-                      {viaje.origen} -{" "}
-                      {viaje.destino}
-                    </span>
-
-                    <span>
-                      {viaje.fecha}
-                    </span>
-
-                    <span>
-                      {viaje.horaSalida}
-                    </span>
-
-                    <span>
-                      ${viaje.precio}
-                    </span>
-
-                  </div>
-
-                )
-              )}
-
+                  <span>${viaje.precio}</span>
+                </div>
+              ))}
             </div>
-
           )}
-
         </section>
-
 
         {/* ====================================================
             ESTADO DEL SISTEMA
             ==================================================== */}
 
         <section className="estado-sistema">
-
-          <p>
-            {status}
-          </p>
-
+          <p>{status}</p>
         </section>
-
       </main>
-
     </>
   );
-
 }

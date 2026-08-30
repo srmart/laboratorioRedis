@@ -135,6 +135,8 @@ router.get("/catalogo", async (req, res) => {
     // ======================================================
 
     const catalogo = await leerViajesCSV();
+    // Guardar el catálogo en Redis para futuras consultas
+    await redisClient.set(cacheKey, JSON.stringify(catalogo));
 
     // ======================================================
     // GUARDAR ORÍGENES Y DESTINOS EN SETS DE REDIS
